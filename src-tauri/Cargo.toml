@@ -2,8 +2,8 @@
 name = "prompt-pad"
 version = "0.1.0"
 description = "A prompt editor for AI LLMs"
-authors = ["you"]
-edition = "2021"
+authors = ["Taekeun Hwang"]
+edition = "2024"
 
 [lib]
 name = "prompt_pad_lib"
