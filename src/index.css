@@ -114,15 +114,10 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-/* Font family classes */
-.font-system {
-  --editor-font: ui-sans-serif, system-ui, sans-serif;
-}
-.font-mono {
+/* Editor font: fixed to monospace */
+:root {
   --editor-font: ui-monospace, "SF Mono", "Cascadia Code", monospace;
-}
-.font-serif {
-  --editor-font: ui-serif, Georgia, Cambria, serif;
+  --editor-font-size: 14px;
 }
 
 @layer base {

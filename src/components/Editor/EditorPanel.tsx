@@ -83,8 +83,11 @@ export function EditorPanel({
       ) : (
         <ScrollArea className="flex-1 p-4">
           <pre
-            className="whitespace-pre-wrap text-sm leading-relaxed"
-            style={{ fontFamily: "var(--editor-font)" }}
+            className="whitespace-pre-wrap leading-relaxed"
+            style={{
+              fontFamily: "var(--editor-font)",
+              fontSize: "var(--editor-font-size)",
+            }}
           >
             {prompt.body}
           </pre>

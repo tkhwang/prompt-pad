@@ -1,11 +1,11 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { FolderOpen, Globe, Monitor, Moon, Sun, Type } from "lucide-react";
+import { FolderOpen, Globe, Monitor, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { Language } from "@/i18n";
 import { LANGUAGE_OPTIONS } from "@/i18n";
 import { useTranslation } from "@/i18n/I18nProvider";
-import type { AppSettings, ColorTheme, FontFamily } from "@/types/settings";
+import type { AppSettings, ColorTheme } from "@/types/settings";
 
 interface OnboardingWizardProps {
   defaultSettings: AppSettings;
@@ -189,46 +189,36 @@ export function OnboardingWizard({
               <p className="text-sm text-muted-foreground">
                 {t("onboarding.font_description")}
               </p>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  {
-                    value: "system" as FontFamily,
-                    labelKey: "font.system" as const,
-                    sample: "ui-sans-serif, system-ui, sans-serif",
-                  },
-                  {
-                    value: "mono" as FontFamily,
-                    labelKey: "font.mono" as const,
-                    sample: "ui-monospace, 'SF Mono', monospace",
-                  },
-                  {
-                    value: "serif" as FontFamily,
-                    labelKey: "font.serif" as const,
-                    sample: "ui-serif, Georgia, serif",
-                  },
-                ].map(({ value, labelKey, sample }) => (
-                  <button
-                    type="button"
-                    key={value}
-                    onClick={() =>
-                      setSettings((s) => ({ ...s, fontFamily: value }))
-                    }
-                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors ${
-                      settings.fontFamily === value
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <Type className="h-6 w-6" />
-                    <span className="text-sm font-medium">{t(labelKey)}</span>
-                    <span
-                      className="text-xs text-muted-foreground"
-                      style={{ fontFamily: sample }}
-                    >
-                      {t("onboarding.font_sample")}
-                    </span>
-                  </button>
-                ))}
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min={12}
+                  max={24}
+                  step={1}
+                  value={settings.fontSize}
+                  onChange={(e) =>
+                    setSettings((s) => ({
+                      ...s,
+                      fontSize: Number(e.target.value),
+                    }))
+                  }
+                  className="flex-1"
+                />
+                <span className="text-sm text-muted-foreground w-10 text-right tabular-nums">
+                  {settings.fontSize}px
+                </span>
+              </div>
+              <div className="p-4 rounded-lg border">
+                <span
+                  className="text-muted-foreground"
+                  style={{
+                    fontFamily:
+                      "ui-monospace, 'SF Mono', 'Cascadia Code', monospace",
+                    fontSize: settings.fontSize + "px",
+                  }}
+                >
+                  {t("onboarding.font_sample")}
+                </span>
               </div>
             </div>
           )}

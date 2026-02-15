@@ -20,8 +20,8 @@ export const en = {
     folder_browse: "Browse",
     theme_title: "Choose your theme",
     theme_description: "Pick a look that suits you.",
-    font_title: "Pick your editor font",
-    font_description: "Choose the font style for the prompt editor.",
+    font_title: "Choose your font size",
+    font_description: "Select the font size for the prompt editor.",
     font_sample: "Aa Bb Cc",
     back: "Back",
     next: "Next",
@@ -31,6 +31,8 @@ export const en = {
 
   settings: {
     title: "Settings",
+    category_general: "General",
+    category_appearance: "Appearance",
     setup_wizard: "Setup Wizard",
     setup_wizard_description: "Re-run the initial setup wizard",
     rerun: "Re-run",
@@ -40,8 +42,11 @@ export const en = {
     prompt_dir_description:
       "Prompts are stored as Markdown files in this directory.",
     theme_label: "Theme",
-    font_label: "Editor Font",
+    theme_description: "Choose your preferred color theme.",
+    font_label: "Font Size",
+    font_description: "Select the font size for the editor.",
     language_label: "Language",
+    language_description: "Select the interface language.",
     close: "Close",
     browse_dialog_title: "Select Prompt Storage Directory",
   },
@@ -50,12 +55,6 @@ export const en = {
     light: "Light",
     dark: "Dark",
     system: "System",
-  },
-
-  font: {
-    system: "System",
-    mono: "Monospace",
-    serif: "Serif",
   },
 
   language: {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { loadSettings, saveSettings } from "@/lib/store";
-import type { AppSettings, ColorTheme, FontFamily } from "@/types/settings";
+import type { AppSettings, ColorTheme } from "@/types/settings";
 
 function applyTheme(theme: ColorTheme) {
   const root = document.documentElement;
@@ -14,10 +14,8 @@ function applyTheme(theme: ColorTheme) {
   }
 }
 
-function applyFont(font: FontFamily) {
-  const root = document.documentElement;
-  root.classList.remove("font-system", "font-mono", "font-serif");
-  root.classList.add(`font-${font}`);
+function applyFontSize(size: number) {
+  document.documentElement.style.setProperty("--editor-font-size", size + "px");
 }
 
 export function useSettings() {
@@ -29,7 +27,7 @@ export function useSettings() {
       .then((s) => {
         setSettings(s);
         applyTheme(s.colorTheme);
-        applyFont(s.fontFamily);
+        applyFontSize(s.fontSize);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -51,7 +49,7 @@ export function useSettings() {
       const next = { ...settings, ...partial };
       setSettings(next);
       if (partial.colorTheme) applyTheme(partial.colorTheme);
-      if (partial.fontFamily) applyFont(partial.fontFamily);
+      if (partial.fontSize !== undefined) applyFontSize(partial.fontSize);
       await saveSettings(next);
     },
     [settings],
@@ -61,7 +59,7 @@ export function useSettings() {
     const completed = { ...finalSettings, onboardingComplete: true };
     setSettings(completed);
     applyTheme(completed.colorTheme);
-    applyFont(completed.fontFamily);
+    applyFontSize(completed.fontSize);
     await saveSettings(completed);
   }, []);
 

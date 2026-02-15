@@ -15,7 +15,7 @@ async function getDefaults(): Promise<AppSettings> {
   return {
     promptDir: await getDefaultPromptDir(),
     colorTheme: "system",
-    fontFamily: "mono",
+    fontSize: 14,
     language: "en",
     onboardingComplete: false,
   };
@@ -28,21 +28,20 @@ export async function loadSettings(): Promise<AppSettings> {
   const colorTheme =
     (await store.get<AppSettings["colorTheme"]>("colorTheme")) ??
     defaults.colorTheme;
-  const fontFamily =
-    (await store.get<AppSettings["fontFamily"]>("fontFamily")) ??
-    defaults.fontFamily;
+  const fontSize =
+    (await store.get<AppSettings["fontSize"]>("fontSize")) ?? defaults.fontSize;
   const language =
     (await store.get<AppSettings["language"]>("language")) ?? defaults.language;
   const onboardingComplete =
     (await store.get<boolean>("onboardingComplete")) ??
     defaults.onboardingComplete;
-  return { promptDir, colorTheme, fontFamily, language, onboardingComplete };
+  return { promptDir, colorTheme, fontSize, language, onboardingComplete };
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
   await store.set("promptDir", settings.promptDir);
   await store.set("colorTheme", settings.colorTheme);
-  await store.set("fontFamily", settings.fontFamily);
+  await store.set("fontSize", settings.fontSize);
   await store.set("language", settings.language);
   await store.set("onboardingComplete", settings.onboardingComplete);
   await store.save();

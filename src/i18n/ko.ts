@@ -26,8 +26,8 @@ export const ko: DeepStringify<typeof en> = {
     folder_browse: "찾아보기",
     theme_title: "테마를 선택하세요",
     theme_description: "원하는 스타일을 고르세요.",
-    font_title: "에디터 글꼴을 선택하세요",
-    font_description: "프롬프트 에디터에 사용할 글꼴 스타일을 선택합니다.",
+    font_title: "글꼴 크기를 선택하세요",
+    font_description: "프롬프트 에디터에 사용할 글꼴 크기를 선택합니다.",
     font_sample: "가나다라",
     back: "이전",
     next: "다음",
@@ -37,6 +37,8 @@ export const ko: DeepStringify<typeof en> = {
 
   settings: {
     title: "설정",
+    category_general: "일반",
+    category_appearance: "외관",
     setup_wizard: "설정 마법사",
     setup_wizard_description: "초기 설정 마법사를 다시 실행합니다",
     rerun: "다시 실행",
@@ -45,8 +47,11 @@ export const ko: DeepStringify<typeof en> = {
     prompt_dir_apply: "폴더 변경 적용",
     prompt_dir_description: "이 폴더에 프롬프트가 마크다운 파일로 저장됩니다.",
     theme_label: "테마",
-    font_label: "에디터 글꼴",
+    theme_description: "선호하는 색상 테마를 선택합니다.",
+    font_label: "글꼴 크기",
+    font_description: "에디터에 사용할 글꼴 크기를 선택합니다.",
     language_label: "언어",
+    language_description: "인터페이스 언어를 선택합니다.",
     close: "닫기",
     browse_dialog_title: "프롬프트 저장 폴더 선택",
   },
@@ -55,12 +60,6 @@ export const ko: DeepStringify<typeof en> = {
     light: "라이트",
     dark: "다크",
     system: "시스템",
-  },
-
-  font: {
-    system: "시스템",
-    mono: "모노스페이스",
-    serif: "세리프",
   },
 
   language: {

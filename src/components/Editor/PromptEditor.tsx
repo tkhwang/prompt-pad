@@ -17,8 +17,11 @@ export function PromptEditor({ prompt, onUpdate, bodyRef }: PromptEditorProps) {
         ref={bodyRef}
         value={prompt.body}
         onChange={(e) => onUpdate({ ...prompt, body: e.target.value })}
-        className="w-full h-full resize-none bg-transparent outline-none text-sm leading-relaxed"
-        style={{ fontFamily: "var(--editor-font)" }}
+        className="w-full h-full resize-none bg-transparent outline-none leading-relaxed"
+        style={{
+          fontFamily: "var(--editor-font)",
+          fontSize: "var(--editor-font-size)",
+        }}
         placeholder={t("editor.placeholder_body")}
       />
     </div>
