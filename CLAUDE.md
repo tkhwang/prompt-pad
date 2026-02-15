@@ -92,6 +92,10 @@ Prompts support `{{variableName}}` placeholders. `extractVariables()` parses the
 
 Strict mode with `noUnusedLocals` and `noUnusedParameters` — unused variables cause build failures.
 
+## Git
+
+Do NOT create git commits. The user handles all git operations (commit, push, etc.) manually.
+
 ## Conventions
 
 - shadcn/ui components live in `src/components/ui/` — these are library primitives, not app code
