@@ -83,6 +83,10 @@ export const en = {
     placeholder_title: "Prompt title...",
     placeholder_body:
       "Write your prompt here... Use {{variable_name}} for template variables.",
+    copy: "Copy",
+    copied: "Copied!",
+    view: "View",
+    edit: "Edit",
   },
 
   sidebar: {
