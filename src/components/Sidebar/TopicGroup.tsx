@@ -22,7 +22,7 @@ export function TopicGroup({
   onSelectTopic,
 }: TopicGroupProps) {
   return (
-    <div>
+    <div className="border-b border-foreground/10">
       <button
         type="button"
         onClick={() => onSelectTopic(name)}
