@@ -26,7 +26,7 @@ export function TopicGroup({
       <button
         type="button"
         onClick={() => onSelectTopic(name)}
-        className="flex items-center gap-1 w-full px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+        className="flex items-center gap-1 w-full px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground border-b border-foreground/10"
       >
         <FolderOpen className="h-3.5 w-3.5" />
         <span>{name}</span>
