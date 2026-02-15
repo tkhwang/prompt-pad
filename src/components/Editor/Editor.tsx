@@ -1,6 +1,7 @@
 import type { Prompt } from "@/types/prompt";
 import { MetaBar } from "./MetaBar";
 import { PromptEditor } from "./PromptEditor";
+import { useTranslation } from "@/i18n/I18nProvider";
 
 interface EditorProps {
   prompt: Prompt | null;
@@ -9,10 +10,12 @@ interface EditorProps {
 }
 
 export function Editor({ prompt, topics, onUpdate }: EditorProps) {
+  const { t } = useTranslation();
+
   if (!prompt) {
     return (
       <div className="flex-1 flex items-center justify-center text-muted-foreground">
-        Select a prompt or create a new one
+        {t("editor.empty")}
       </div>
     );
   }

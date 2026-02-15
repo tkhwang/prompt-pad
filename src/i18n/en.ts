@@ -1,0 +1,101 @@
+export const en = {
+  app: {
+    title: "Prompt Pad",
+    loading: "Loading...",
+    loading_prompts: "Loading prompts...",
+  },
+
+  new_prompt: {
+    title: "New Prompt",
+    label_title: "Title",
+    placeholder_title: "Prompt title",
+    label_topic: "Topic (folder)",
+    placeholder_topic: "General",
+    cancel: "Cancel",
+    create: "Create",
+  },
+
+  onboarding: {
+    welcome_title: "Welcome to Prompt Pad",
+    welcome_subtitle: "Let's set things up in a few quick steps.",
+    welcome_hint: "You can change all of these later in Settings.",
+    language_title: "Choose your language",
+    language_description: "Select a language for the interface.",
+    folder_title: "Where should we store your prompts?",
+    folder_description: "Prompts are saved as Markdown files.",
+    folder_browse: "Browse",
+    theme_title: "Choose your theme",
+    theme_description: "Pick a look that suits you.",
+    font_title: "Pick your editor font",
+    font_description: "Choose the font style for the prompt editor.",
+    font_sample: "Aa Bb Cc",
+    back: "Back",
+    next: "Next",
+    finish: "Get Started",
+    browse_dialog_title: "Select Prompt Storage Directory",
+  },
+
+  settings: {
+    title: "Settings",
+    setup_wizard: "Setup Wizard",
+    setup_wizard_description: "Re-run the initial setup wizard",
+    rerun: "Re-run",
+    prompt_dir_label: "Prompt Storage Directory",
+    prompt_dir_browse: "Browse",
+    prompt_dir_apply: "Apply Directory Change",
+    prompt_dir_description: "Prompts are stored as Markdown files in this directory.",
+    theme_label: "Theme",
+    font_label: "Editor Font",
+    language_label: "Language",
+    close: "Close",
+    browse_dialog_title: "Select Prompt Storage Directory",
+  },
+
+  theme: {
+    light: "Light",
+    dark: "Dark",
+    system: "System",
+  },
+
+  font: {
+    system: "System",
+    mono: "Monospace",
+    serif: "Serif",
+  },
+
+  language: {
+    en: "English",
+    ko: "Korean",
+  },
+
+  status: {
+    new: "New",
+    copy: "Copy",
+    use_template: "Use Template",
+  },
+
+  template: {
+    title: "Fill Template Variables",
+    placeholder: "Enter {{name}}...",
+    cancel: "Cancel",
+    copy: "Copy to Clipboard",
+  },
+
+  editor: {
+    empty: "Select a prompt or create a new one",
+    placeholder_title: "Prompt title...",
+    placeholder_body: "Write your prompt here... Use {{variable_name}} for template variables.",
+    topic_label: "Topic:",
+    tags_label: "Tags:",
+    placeholder_tag: "Add tag...",
+  },
+
+  sidebar: {
+    empty: "No prompts yet. Click + to create one.",
+    search_placeholder: "Search prompts...",
+  },
+
+  prompt: {
+    delete_confirm: 'Delete "{{title}}"?',
+  },
+} as const;

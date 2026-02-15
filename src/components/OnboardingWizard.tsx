@@ -1,29 +1,39 @@
 import { useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { Button } from "@/components/ui/button";
-import { FolderOpen, Sun, Moon, Monitor, Type } from "lucide-react";
+import { FolderOpen, Sun, Moon, Monitor, Type, Globe } from "lucide-react";
+import { useTranslation } from "@/i18n/I18nProvider";
+import { LANGUAGE_OPTIONS } from "@/i18n";
+import type { Language } from "@/i18n";
 import type { AppSettings, ColorTheme, FontFamily } from "@/types/settings";
 
 interface OnboardingWizardProps {
   defaultSettings: AppSettings;
   onComplete: (settings: AppSettings) => void;
+  onLanguageChange: (language: Language) => void;
 }
 
-const STEPS = ["Folder", "Theme", "Font"] as const;
+const STEP_COUNT = 4;
 
-export function OnboardingWizard({ defaultSettings, onComplete }: OnboardingWizardProps) {
+export function OnboardingWizard({ defaultSettings, onComplete, onLanguageChange }: OnboardingWizardProps) {
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
 
   const handleBrowse = async () => {
     const selected = await open({
-      title: "Select Prompt Storage Directory",
+      title: t("onboarding.browse_dialog_title"),
       directory: true,
       defaultPath: settings.promptDir,
     });
     if (selected) {
       setSettings((s) => ({ ...s, promptDir: selected as string }));
     }
+  };
+
+  const handleLanguageSelect = (lang: Language) => {
+    setSettings((s) => ({ ...s, language: lang }));
+    onLanguageChange(lang);
   };
 
   const handleFinish = () => {
@@ -35,14 +45,15 @@ export function OnboardingWizard({ defaultSettings, onComplete }: OnboardingWiza
       <div className="w-full max-w-lg p-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2">Welcome to Prompt Pad</h1>
-          <p className="text-muted-foreground">Let's set things up in a few quick steps.</p>
+          <h1 className="text-2xl font-bold mb-2">{t("onboarding.welcome_title")}</h1>
+          <p className="text-muted-foreground">{t("onboarding.welcome_subtitle")}</p>
+          <p className="text-sm text-muted-foreground/70">{t("onboarding.welcome_hint")}</p>
         </div>
 
         {/* Step indicator */}
         <div className="flex justify-center gap-2 mb-8">
-          {STEPS.map((label, i) => (
-            <div key={label} className="flex items-center gap-2">
+          {Array.from({ length: STEP_COUNT }, (_, i) => (
+            <div key={i} className="flex items-center gap-2">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
                   i === step
@@ -54,7 +65,7 @@ export function OnboardingWizard({ defaultSettings, onComplete }: OnboardingWiza
               >
                 {i + 1}
               </div>
-              {i < STEPS.length - 1 && (
+              {i < STEP_COUNT - 1 && (
                 <div className={`w-8 h-px ${i < step ? "bg-primary" : "bg-border"}`} />
               )}
             </div>
@@ -65,9 +76,34 @@ export function OnboardingWizard({ defaultSettings, onComplete }: OnboardingWiza
         <div className="min-h-[200px]">
           {step === 0 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Where should we store your prompts?</h2>
+              <h2 className="text-lg font-semibold">{t("onboarding.language_title")}</h2>
               <p className="text-sm text-muted-foreground">
-                Prompts are saved as Markdown files. You can change this later in Settings.
+                {t("onboarding.language_description")}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {LANGUAGE_OPTIONS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => handleLanguageSelect(value)}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors ${
+                      settings.language === value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <Globe className="h-6 w-6" />
+                    <span className="text-sm font-medium">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">{t("onboarding.folder_title")}</h2>
+              <p className="text-sm text-muted-foreground">
+                {t("onboarding.folder_description")}
               </p>
               <div className="flex gap-2 items-center">
                 <div className="flex-1 px-3 py-2 rounded-md border bg-muted text-sm truncate">
@@ -75,24 +111,24 @@ export function OnboardingWizard({ defaultSettings, onComplete }: OnboardingWiza
                 </div>
                 <Button variant="outline" onClick={handleBrowse}>
                   <FolderOpen className="h-4 w-4 mr-2" />
-                  Browse
+                  {t("onboarding.folder_browse")}
                 </Button>
               </div>
             </div>
           )}
 
-          {step === 1 && (
+          {step === 2 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Choose your theme</h2>
+              <h2 className="text-lg font-semibold">{t("onboarding.theme_title")}</h2>
               <p className="text-sm text-muted-foreground">
-                Pick a look that suits you. This can be changed anytime.
+                {t("onboarding.theme_description")}
               </p>
               <div className="grid grid-cols-3 gap-3">
                 {([
-                  { value: "light" as ColorTheme, label: "Light", icon: Sun },
-                  { value: "dark" as ColorTheme, label: "Dark", icon: Moon },
-                  { value: "system" as ColorTheme, label: "System", icon: Monitor },
-                ]).map(({ value, label, icon: Icon }) => (
+                  { value: "light" as ColorTheme, labelKey: "theme.light" as const, icon: Sun },
+                  { value: "dark" as ColorTheme, labelKey: "theme.dark" as const, icon: Moon },
+                  { value: "system" as ColorTheme, labelKey: "theme.system" as const, icon: Monitor },
+                ]).map(({ value, labelKey, icon: Icon }) => (
                   <button
                     key={value}
                     onClick={() => setSettings((s) => ({ ...s, colorTheme: value }))}
@@ -103,25 +139,25 @@ export function OnboardingWizard({ defaultSettings, onComplete }: OnboardingWiza
                     }`}
                   >
                     <Icon className="h-6 w-6" />
-                    <span className="text-sm font-medium">{label}</span>
+                    <span className="text-sm font-medium">{t(labelKey)}</span>
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Pick your editor font</h2>
+              <h2 className="text-lg font-semibold">{t("onboarding.font_title")}</h2>
               <p className="text-sm text-muted-foreground">
-                Choose the font style for the prompt editor.
+                {t("onboarding.font_description")}
               </p>
               <div className="grid grid-cols-3 gap-3">
                 {([
-                  { value: "system" as FontFamily, label: "System", sample: "ui-sans-serif, system-ui, sans-serif" },
-                  { value: "mono" as FontFamily, label: "Mono", sample: "ui-monospace, 'SF Mono', monospace" },
-                  { value: "serif" as FontFamily, label: "Serif", sample: "ui-serif, Georgia, serif" },
-                ]).map(({ value, label, sample }) => (
+                  { value: "system" as FontFamily, labelKey: "font.system" as const, sample: "ui-sans-serif, system-ui, sans-serif" },
+                  { value: "mono" as FontFamily, labelKey: "font.mono" as const, sample: "ui-monospace, 'SF Mono', monospace" },
+                  { value: "serif" as FontFamily, labelKey: "font.serif" as const, sample: "ui-serif, Georgia, serif" },
+                ]).map(({ value, labelKey, sample }) => (
                   <button
                     key={value}
                     onClick={() => setSettings((s) => ({ ...s, fontFamily: value }))}
@@ -132,9 +168,9 @@ export function OnboardingWizard({ defaultSettings, onComplete }: OnboardingWiza
                     }`}
                   >
                     <Type className="h-6 w-6" />
-                    <span className="text-sm font-medium">{label}</span>
+                    <span className="text-sm font-medium">{t(labelKey)}</span>
                     <span className="text-xs text-muted-foreground" style={{ fontFamily: sample }}>
-                      Aa Bb Cc
+                      {t("onboarding.font_sample")}
                     </span>
                   </button>
                 ))}
@@ -150,12 +186,12 @@ export function OnboardingWizard({ defaultSettings, onComplete }: OnboardingWiza
             onClick={() => setStep((s) => s - 1)}
             disabled={step === 0}
           >
-            Back
+            {t("onboarding.back")}
           </Button>
-          {step < STEPS.length - 1 ? (
-            <Button onClick={() => setStep((s) => s + 1)}>Next</Button>
+          {step < STEP_COUNT - 1 ? (
+            <Button onClick={() => setStep((s) => s + 1)}>{t("onboarding.next")}</Button>
           ) : (
-            <Button onClick={handleFinish}>Get Started</Button>
+            <Button onClick={handleFinish}>{t("onboarding.finish")}</Button>
           )}
         </div>
       </div>

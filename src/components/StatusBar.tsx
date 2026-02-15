@@ -1,3 +1,5 @@
+import { useTranslation } from "@/i18n/I18nProvider";
+
 interface StatusBarProps {
   onNew: () => void;
   onCopy: () => void;
@@ -6,19 +8,21 @@ interface StatusBarProps {
 }
 
 export function StatusBar({ onNew, onCopy, onTemplate, hasSelection }: StatusBarProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center justify-between px-4 py-2 border-t text-xs text-muted-foreground">
       <button onClick={onNew} className="hover:text-foreground transition-colors">
-        New <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px]">⌘N</kbd>
+        {t("status.new")} <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px]">⌘N</kbd>
       </button>
       <div className="flex items-center gap-4">
         {hasSelection && (
           <>
             <button onClick={onCopy} className="hover:text-foreground transition-colors">
-              Copy <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px]">⌘C</kbd>
+              {t("status.copy")} <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px]">⌘C</kbd>
             </button>
             <button onClick={onTemplate} className="hover:text-foreground transition-colors">
-              Use Template <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px]">⌘T</kbd>
+              {t("status.use_template")} <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px]">⌘T</kbd>
             </button>
           </>
         )}

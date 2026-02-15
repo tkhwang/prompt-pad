@@ -5,6 +5,8 @@ import { StatusBar } from "@/components/StatusBar";
 import { TemplateModal } from "@/components/TemplateModal";
 import { SettingsModal } from "@/components/SettingsModal";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { I18nProvider } from "@/i18n/I18nProvider";
+import { useTranslation } from "@/i18n/I18nProvider";
 import { usePrompts } from "@/hooks/usePrompts";
 import { useSearch } from "@/hooks/useSearch";
 import { useAutoSave } from "@/hooks/useAutoSave";
@@ -21,9 +23,27 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import type { Language } from "@/i18n";
 
-function App() {
-  const { settings, loading: settingsLoading, updateSettings, completeOnboarding } = useSettings();
+interface AppContentProps {
+  onLanguageOverride: (language: Language) => void;
+}
+
+function AppContent({ onLanguageOverride }: AppContentProps) {
+  const {
+    settings,
+    loading: settingsLoading,
+    updateSettings,
+    completeOnboarding,
+  } = useSettings();
+  const { t } = useTranslation();
+
+  // Sync language to parent I18nProvider when settings load or language changes
+  useEffect(() => {
+    if (settings?.language) {
+      onLanguageOverride(settings.language);
+    }
+  }, [settings?.language, onLanguageOverride]);
 
   const {
     prompts,
@@ -105,7 +125,15 @@ function App() {
         await loadPrompts();
       }
     },
-    [updateSettings, loadPrompts]
+    [updateSettings, loadPrompts],
+  );
+
+  const handleLanguageChange = useCallback(
+    (language: Language) => {
+      onLanguageOverride(language);
+      updateSettings({ language });
+    },
+    [updateSettings, onLanguageOverride],
   );
 
   const handleRerunSetup = useCallback(() => {
@@ -116,7 +144,7 @@ function App() {
   if (settingsLoading) {
     return (
       <div className="flex items-center justify-center h-screen text-muted-foreground">
-        Loading...
+        {t("app.loading")}
       </div>
     );
   }
@@ -126,6 +154,7 @@ function App() {
       <OnboardingWizard
         defaultSettings={settings}
         onComplete={completeOnboarding}
+        onLanguageChange={handleLanguageChange}
       />
     );
   }
@@ -133,7 +162,7 @@ function App() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen text-muted-foreground">
-        Loading prompts...
+        {t("app.loading_prompts")}
       </div>
     );
   }
@@ -142,8 +171,12 @@ function App() {
     <div className="flex flex-col h-screen">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b">
-        <h1 className="text-sm font-semibold">Prompt Pad</h1>
-        <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)}>
+        <h1 className="text-sm font-semibold">{t("app.title")}</h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setSettingsOpen(true)}
+        >
           <Settings className="h-4 w-4" />
         </Button>
       </div>
@@ -161,7 +194,7 @@ function App() {
         />
         <Editor
           prompt={editingPrompt}
-          topics={topics.map((t) => t.name)}
+          topics={topics.map((tp) => tp.name)}
           onUpdate={setEditingPrompt}
         />
       </div>
@@ -196,7 +229,7 @@ function App() {
       <Dialog open={newPromptOpen} onOpenChange={setNewPromptOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>New Prompt</DialogTitle>
+            <DialogTitle>{t("new_prompt.title")}</DialogTitle>
           </DialogHeader>
           <form
             onSubmit={(e) => {
@@ -207,12 +240,12 @@ function App() {
             <div className="flex flex-col gap-4 py-2">
               <div className="flex flex-col gap-2">
                 <label htmlFor="prompt-title" className="text-sm font-medium">
-                  Title
+                  {t("new_prompt.label_title")}
                 </label>
                 <Input
                   id="prompt-title"
                   ref={titleInputRef}
-                  placeholder="Prompt title"
+                  placeholder={t("new_prompt.placeholder_title")}
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   autoFocus
@@ -220,28 +253,42 @@ function App() {
               </div>
               <div className="flex flex-col gap-2">
                 <label htmlFor="prompt-topic" className="text-sm font-medium">
-                  Topic (folder)
+                  {t("new_prompt.label_topic")}
                 </label>
                 <Input
                   id="prompt-topic"
-                  placeholder="General"
+                  placeholder={t("new_prompt.placeholder_topic")}
                   value={newTopic}
                   onChange={(e) => setNewTopic(e.target.value)}
                 />
               </div>
             </div>
             <DialogFooter className="mt-4">
-              <Button type="button" variant="outline" onClick={() => setNewPromptOpen(false)}>
-                Cancel
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setNewPromptOpen(false)}
+              >
+                {t("new_prompt.cancel")}
               </Button>
               <Button type="submit" disabled={!newTitle.trim()}>
-                Create
+                {t("new_prompt.create")}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function App() {
+  const [language, setLanguage] = useState<Language>("en");
+
+  return (
+    <I18nProvider language={language}>
+      <AppContent onLanguageOverride={setLanguage} />
+    </I18nProvider>
   );
 }
 

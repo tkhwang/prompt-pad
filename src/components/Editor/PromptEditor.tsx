@@ -1,4 +1,5 @@
 import type { Prompt } from "@/types/prompt";
+import { useTranslation } from "@/i18n/I18nProvider";
 
 interface PromptEditorProps {
   prompt: Prompt;
@@ -6,6 +7,8 @@ interface PromptEditorProps {
 }
 
 export function PromptEditor({ prompt, onUpdate }: PromptEditorProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex-1 p-4">
       <textarea
@@ -13,7 +16,7 @@ export function PromptEditor({ prompt, onUpdate }: PromptEditorProps) {
         onChange={(e) => onUpdate({ ...prompt, body: e.target.value })}
         className="w-full h-full resize-none bg-transparent outline-none text-sm leading-relaxed"
         style={{ fontFamily: "var(--editor-font)" }}
-        placeholder="Write your prompt here... Use {{variable_name}} for template variables."
+        placeholder={t("editor.placeholder_body")}
       />
     </div>
   );

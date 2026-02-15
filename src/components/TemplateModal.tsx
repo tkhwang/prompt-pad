@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { extractVariables, substituteVariables } from "@/lib/template";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { useTranslation } from "@/i18n/I18nProvider";
 
 interface TemplateModalProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface TemplateModalProps {
 }
 
 export function TemplateModal({ open, onOpenChange, body }: TemplateModalProps) {
+  const { t } = useTranslation();
   const variables = extractVariables(body);
   const [values, setValues] = useState<Record<string, string>>({});
 
@@ -43,7 +45,7 @@ export function TemplateModal({ open, onOpenChange, body }: TemplateModalProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Fill Template Variables</DialogTitle>
+          <DialogTitle>{t("template.title")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           {variables.map((variable) => (
@@ -54,16 +56,16 @@ export function TemplateModal({ open, onOpenChange, body }: TemplateModalProps) 
                 onChange={(e) =>
                   setValues((prev) => ({ ...prev, [variable]: e.target.value }))
                 }
-                placeholder={`Enter ${variable}...`}
+                placeholder={t("template.placeholder", { name: variable })}
               />
             </div>
           ))}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("template.cancel")}
           </Button>
-          <Button onClick={handleCopy}>Copy to Clipboard</Button>
+          <Button onClick={handleCopy}>{t("template.copy")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

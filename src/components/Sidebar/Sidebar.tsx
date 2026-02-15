@@ -3,6 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Prompt } from "@/types/prompt";
 import { SearchBar } from "./SearchBar";
 import { TopicGroup } from "./TopicGroup";
+import { useTranslation } from "@/i18n/I18nProvider";
 
 interface SidebarProps {
   prompts: Prompt[];
@@ -23,6 +24,8 @@ export function Sidebar({
   onDelete,
   onNewPrompt,
 }: SidebarProps) {
+  const { t } = useTranslation();
+
   const grouped = useMemo(() => {
     const map = new Map<string, Prompt[]>();
     for (const prompt of prompts) {
@@ -53,7 +56,7 @@ export function Sidebar({
         ))}
         {grouped.length === 0 && (
           <div className="p-4 text-sm text-muted-foreground text-center">
-            No prompts yet. Click + to create one.
+            {t("sidebar.empty")}
           </div>
         )}
       </ScrollArea>

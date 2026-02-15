@@ -10,7 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { open } from "@tauri-apps/plugin-dialog";
 import { RotateCcw } from "lucide-react";
+import { useTranslation } from "@/i18n/I18nProvider";
+import { LANGUAGE_OPTIONS } from "@/i18n";
 import type { AppSettings, ColorTheme, FontFamily } from "@/types/settings";
+import type { TranslationKey } from "@/i18n";
 
 interface SettingsModalProps {
   open: boolean;
@@ -20,16 +23,16 @@ interface SettingsModalProps {
   onRerunSetup: () => void;
 }
 
-const THEME_OPTIONS: { value: ColorTheme; label: string }[] = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-  { value: "system", label: "System" },
+const THEME_OPTIONS: { value: ColorTheme; labelKey: TranslationKey }[] = [
+  { value: "light", labelKey: "theme.light" },
+  { value: "dark", labelKey: "theme.dark" },
+  { value: "system", labelKey: "theme.system" },
 ];
 
-const FONT_OPTIONS: { value: FontFamily; label: string }[] = [
-  { value: "system", label: "System" },
-  { value: "mono", label: "Monospace" },
-  { value: "serif", label: "Serif" },
+const FONT_OPTIONS: { value: FontFamily; labelKey: TranslationKey }[] = [
+  { value: "system", labelKey: "font.system" },
+  { value: "mono", labelKey: "font.mono" },
+  { value: "serif", labelKey: "font.serif" },
 ];
 
 export function SettingsModal({
@@ -39,11 +42,12 @@ export function SettingsModal({
   onUpdate,
   onRerunSetup,
 }: SettingsModalProps) {
+  const { t } = useTranslation();
   const [dir, setDir] = useState(settings.promptDir);
 
   const handleBrowse = async () => {
     const selected = await open({
-      title: "Select Prompt Storage Directory",
+      title: t("settings.browse_dialog_title"),
       directory: true,
       defaultPath: dir,
     });
@@ -62,52 +66,69 @@ export function SettingsModal({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
+          <DialogTitle>{t("settings.title")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
           {/* Re-run setup wizard */}
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div>
-              <p className="text-sm font-medium">Setup Wizard</p>
-              <p className="text-xs text-muted-foreground">Re-run the initial setup wizard</p>
+              <p className="text-sm font-medium">{t("settings.setup_wizard")}</p>
+              <p className="text-xs text-muted-foreground">{t("settings.setup_wizard_description")}</p>
             </div>
             <Button variant="outline" size="sm" onClick={onRerunSetup}>
               <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-              Re-run
+              {t("settings.rerun")}
             </Button>
           </div>
 
           {/* Prompt directory */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Prompt Storage Directory</label>
+            <label className="text-sm font-medium">{t("settings.prompt_dir_label")}</label>
             <div className="flex gap-2">
               <Input value={dir} onChange={(e) => setDir(e.target.value)} className="flex-1" />
               <Button variant="outline" onClick={handleBrowse}>
-                Browse
+                {t("settings.prompt_dir_browse")}
               </Button>
             </div>
             {dir !== settings.promptDir && (
               <Button size="sm" onClick={handleSaveDir}>
-                Apply Directory Change
+                {t("settings.prompt_dir_apply")}
               </Button>
             )}
             <p className="text-xs text-muted-foreground">
-              Prompts are stored as Markdown files in this directory.
+              {t("settings.prompt_dir_description")}
             </p>
+          </div>
+
+          {/* Language */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">{t("settings.language_label")}</label>
+            <div className="flex gap-2">
+              {LANGUAGE_OPTIONS.map(({ value, label }) => (
+                <Button
+                  key={value}
+                  variant={settings.language === value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onUpdate({ language: value })}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* Theme */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Theme</label>
+            <label className="text-sm font-medium">{t("settings.theme_label")}</label>
             <div className="flex gap-2">
-              {THEME_OPTIONS.map(({ value, label }) => (
+              {THEME_OPTIONS.map(({ value, labelKey }) => (
                 <Button
                   key={value}
                   variant={settings.colorTheme === value ? "default" : "outline"}
                   size="sm"
                   onClick={() => onUpdate({ colorTheme: value })}
                 >
-                  {label}
+                  {t(labelKey)}
                 </Button>
               ))}
             </div>
@@ -115,16 +136,16 @@ export function SettingsModal({
 
           {/* Font */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Editor Font</label>
+            <label className="text-sm font-medium">{t("settings.font_label")}</label>
             <div className="flex gap-2">
-              {FONT_OPTIONS.map(({ value, label }) => (
+              {FONT_OPTIONS.map(({ value, labelKey }) => (
                 <Button
                   key={value}
                   variant={settings.fontFamily === value ? "default" : "outline"}
                   size="sm"
                   onClick={() => onUpdate({ fontFamily: value })}
                 >
-                  {label}
+                  {t(labelKey)}
                 </Button>
               ))}
             </div>
@@ -132,7 +153,7 @@ export function SettingsModal({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t("settings.close")}
           </Button>
         </DialogFooter>
       </DialogContent>

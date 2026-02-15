@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { Prompt } from "@/types/prompt";
+import { useTranslation } from "@/i18n/I18nProvider";
 
 interface PromptItemProps {
   prompt: Prompt;
@@ -14,6 +15,7 @@ export function PromptItem({
   onClick,
   onDelete,
 }: PromptItemProps) {
+  const { t } = useTranslation();
   const preview = prompt.body.slice(0, 80).replace(/\n/g, " ");
 
   return (
@@ -21,7 +23,7 @@ export function PromptItem({
       onClick={onClick}
       onContextMenu={(e) => {
         e.preventDefault();
-        if (confirm(`Delete "${prompt.title}"?`)) {
+        if (confirm(t("prompt.delete_confirm", { title: prompt.title }))) {
           onDelete();
         }
       }}
