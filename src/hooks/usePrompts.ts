@@ -7,6 +7,7 @@ import {
   listMarkdownFiles,
   listTopicDirs,
   readPromptFile,
+  renameEntry,
   writePromptFile,
 } from "@/lib/fs";
 import {
@@ -126,12 +127,47 @@ export function usePrompts(promptDir: string) {
       ...updated,
       updated: new Date().toISOString(),
     };
-    const content = serializeMarkdown(withTimestamp);
-    await writePromptFile(updated.filePath, content);
+
+    // Derive new filename from current title
+    const newFileName = titleToFileName(withTimestamp.title);
+    const oldFilePath = updated.filePath;
+    const dir = oldFilePath.substring(0, oldFilePath.lastIndexOf("/"));
+    const oldFileName = oldFilePath.split("/").pop() || "";
+
+    let finalPrompt = withTimestamp;
+
+    // Rename file if title-derived filename differs and is valid
+    if (newFileName !== oldFileName && newFileName !== ".md") {
+      let newFilePath = await join(dir, newFileName);
+      let counter = 1;
+
+      // Handle filename collisions (skip self — same path means no conflict)
+      while ((await fileExists(newFilePath)) && newFilePath !== oldFilePath) {
+        const base = newFileName.replace(/\.md$/, "");
+        newFilePath = await join(dir, `${base}-${counter}.md`);
+        counter++;
+      }
+
+      // Only rename if the path actually changed
+      if (newFilePath !== oldFilePath) {
+        await renameEntry(oldFilePath, newFilePath);
+        finalPrompt = {
+          ...withTimestamp,
+          id: newFilePath,
+          filePath: newFilePath,
+        };
+      }
+    }
+
+    const content = serializeMarkdown(finalPrompt);
+    await writePromptFile(finalPrompt.filePath, content);
 
     setPrompts((prev) =>
-      prev.map((p) => (p.id === updated.id ? withTimestamp : p)),
+      prev.map((p) => (p.id === updated.id ? finalPrompt : p)),
     );
+
+    // Update selectedId if the renamed prompt was selected
+    setSelectedId((prev) => (prev === updated.id ? finalPrompt.id : prev));
   }, []);
 
   const deletePrompt = useCallback(

@@ -33,6 +33,10 @@ export function Sidebar({
       if (!map.has(topic)) map.set(topic, []);
       map.get(topic)?.push(prompt);
     }
+    // Sort prompts within each topic: newest first
+    for (const list of map.values()) {
+      list.sort((a, b) => b.created.localeCompare(a.created));
+    }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [prompts]);
 

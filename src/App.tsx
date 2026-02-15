@@ -9,6 +9,7 @@ import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { StatusBar } from "@/components/StatusBar";
 import { TemplateModal } from "@/components/TemplateModal";
 import { Button } from "@/components/ui/button";
+import { PROMPT_FILE_TITLE_AUTO_SAVE_DELAY_MS } from "@/consts";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { usePrompts } from "@/hooks/usePrompts";
 import { useSearch } from "@/hooks/useSearch";
@@ -56,12 +57,38 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const bodyInputRef = useRef<HTMLTextAreaElement>(null);
+  const shouldFocusBodyRef = useRef(false);
 
   useEffect(() => {
-    setEditingPrompt(selectedPrompt);
+    setEditingPrompt((prev) => {
+      if (!selectedPrompt) return null;
+      // Same prompt (rename or auto-save echo) — only patch id/filePath
+      if (prev && prev.created === selectedPrompt.created) {
+        if (prev.id === selectedPrompt.id) return prev;
+        return {
+          ...prev,
+          id: selectedPrompt.id,
+          filePath: selectedPrompt.filePath,
+        };
+      }
+      // Different prompt selected
+      return selectedPrompt;
+    });
   }, [selectedPrompt]);
 
-  useAutoSave(editingPrompt, updatePrompt);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally triggers on editingPrompt change to focus body after rename cascade
+  useEffect(() => {
+    if (shouldFocusBodyRef.current) {
+      shouldFocusBodyRef.current = false;
+      bodyInputRef.current?.focus();
+    }
+  }, [editingPrompt]);
+
+  useAutoSave(
+    editingPrompt,
+    updatePrompt,
+    PROMPT_FILE_TITLE_AUTO_SAVE_DELAY_MS,
+  );
 
   const handleNewPrompt = useCallback(async () => {
     try {
@@ -194,7 +221,21 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
           onUpdate={setEditingPrompt}
           titleRef={titleInputRef}
           bodyRef={bodyInputRef}
-          onTitleEnter={() => bodyInputRef.current?.focus()}
+          onTitleEnter={() => {
+            if (editingPrompt) {
+              shouldFocusBodyRef.current = true;
+              updatePrompt(editingPrompt);
+              // Fallback: double rAF for when filename doesn't change (editingPrompt unchanged)
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  if (shouldFocusBodyRef.current) {
+                    shouldFocusBodyRef.current = false;
+                    bodyInputRef.current?.focus();
+                  }
+                });
+              });
+            }
+          }}
         />
       </div>
 
