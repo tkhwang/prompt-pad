@@ -18,6 +18,22 @@ import {
 } from "@/lib/markdown";
 import type { Prompt, Topic } from "@/types/prompt";
 
+function replacePathPrefix(
+  targetPath: string,
+  fromPath: string,
+  toPath: string,
+): string {
+  if (targetPath === fromPath) return toPath;
+
+  const separator = fromPath.includes("\\") ? "\\" : "/";
+  const fromWithBoundary = fromPath.endsWith(separator)
+    ? fromPath
+    : `${fromPath}${separator}`;
+
+  if (!targetPath.startsWith(fromWithBoundary)) return targetPath;
+  return `${toPath}${targetPath.slice(fromPath.length)}`;
+}
+
 export function usePrompts(promptDir: string) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -213,10 +229,7 @@ export function usePrompts(promptDir: string) {
       setPrompts((prev) =>
         prev.map((p) => {
           if (p.topic !== oldName) return p;
-          const newFilePath = p.filePath.replace(
-            `/${oldName}/`,
-            `/${newName}/`,
-          );
+          const newFilePath = replacePathPrefix(p.filePath, oldPath, newPath);
           return {
             ...p,
             topic: newName,
@@ -228,10 +241,8 @@ export function usePrompts(promptDir: string) {
 
       // Update selectedId if it belonged to renamed topic
       setSelectedId((prev) => {
-        if (prev?.includes(`/${oldName}/`)) {
-          return prev.replace(`/${oldName}/`, `/${newName}/`);
-        }
-        return prev;
+        if (!prev) return prev;
+        return replacePathPrefix(prev, oldPath, newPath);
       });
 
       return newName;
