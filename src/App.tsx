@@ -61,6 +61,30 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"simple" | "detail">("detail");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [topicPanelOpen, setTopicPanelOpen] = useState(false);
+
+  // Close animation 중 TopicPanel에 보여줄 토픽 (마지막 non-null 값 유지)
+  const lastTopicRef = useRef<string | null>(null);
+  if (selectedTopic !== null) {
+    lastTopicRef.current = selectedTopic;
+  }
+  const panelDisplayTopic = topicPanelOpen
+    ? selectedTopic
+    : (selectedTopic ?? lastTopicRef.current);
+
+  // TopicPanel 내부 클릭: 토픽 선택 + 패널 닫기
+  const handlePanelSelectTopic = useCallback((topic: string | null) => {
+    setSelectedTopic(topic);
+    setTopicPanelOpen(false);
+  }, []);
+
+  // Sidebar에서 호출: TopicGroup 클릭(non-null)은 토픽 설정, 뒤로가기(null)는 패널만 열기
+  const handleSidebarSelectTopic = useCallback((topic: string | null) => {
+    if (topic !== null) {
+      setSelectedTopic(topic);
+    }
+    setTopicPanelOpen(true);
+  }, []);
 
   const titleInputRef = useRef<HTMLInputElement>(null);
   const bodyInputRef = useRef<HTMLTextAreaElement>(null);
@@ -217,14 +241,14 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         <div
           className={cn(
             "shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out",
-            selectedTopic !== null ? "w-48" : "w-0",
+            topicPanelOpen ? "w-48" : "w-0",
           )}
         >
           <TopicPanel
             topics={topics}
             totalPromptCount={filtered.length}
-            selectedTopic={selectedTopic}
-            onSelectTopic={setSelectedTopic}
+            selectedTopic={panelDisplayTopic}
+            onSelectTopic={handlePanelSelectTopic}
           />
         </div>
         <Sidebar
@@ -240,7 +264,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
             setViewMode((v) => (v === "simple" ? "detail" : "simple"))
           }
           selectedTopic={selectedTopic}
-          onSelectTopic={setSelectedTopic}
+          onSelectTopic={handleSidebarSelectTopic}
         />
         <Editor
           prompt={editingPrompt}
