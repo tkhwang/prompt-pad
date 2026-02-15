@@ -1,6 +1,7 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { Settings } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { Editor } from "@/components/Editor/Editor";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { SettingsModal } from "@/components/SettingsModal";
@@ -15,6 +16,7 @@ import { useSettings } from "@/hooks/useSettings";
 import type { Language } from "@/i18n";
 import { I18nProvider, useTranslation } from "@/i18n/I18nProvider";
 import { extractVariables } from "@/lib/template";
+import { generateTitle } from "@/lib/title-generator";
 
 interface AppContentProps {
   onLanguageOverride: (language: Language) => void;
@@ -27,7 +29,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     updateSettings,
     completeOnboarding,
   } = useSettings();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   // Sync language to parent I18nProvider when settings load or language changes
   useEffect(() => {
@@ -54,30 +56,36 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const bodyInputRef = useRef<HTMLTextAreaElement>(null);
-  const shouldFocusTitle = useRef(false);
 
   useEffect(() => {
     setEditingPrompt(selectedPrompt);
   }, [selectedPrompt]);
 
-  useEffect(() => {
-    if (shouldFocusTitle.current && editingPrompt) {
-      shouldFocusTitle.current = false;
-      titleInputRef.current?.focus();
-      titleInputRef.current?.select();
-    }
-  }, [editingPrompt]);
-
   useAutoSave(editingPrompt, updatePrompt);
 
   const handleNewPrompt = useCallback(async () => {
     try {
-      shouldFocusTitle.current = true;
-      await createPrompt(t("new_prompt.untitled"), "General");
+      const title = generateTitle(language);
+      const newPrompt = await createPrompt(title, "General");
+      flushSync(() => {
+        setEditingPrompt(newPrompt);
+      });
+      requestAnimationFrame(() => {
+        if (titleInputRef.current) {
+          titleInputRef.current.focus();
+          titleInputRef.current.select();
+        } else {
+          // Fallback: Input may not be mounted yet (empty state → editor transition)
+          requestAnimationFrame(() => {
+            titleInputRef.current?.focus();
+            titleInputRef.current?.select();
+          });
+        }
+      });
     } catch (err) {
       console.error("Failed to create prompt:", err);
     }
-  }, [createPrompt, t]);
+  }, [createPrompt, language]);
 
   const handleCopy = useCallback(async () => {
     if (editingPrompt) {
