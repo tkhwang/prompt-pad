@@ -14,7 +14,7 @@ export function MetaBar({ prompt, onUpdate, titleRef, onEnter }: MetaBarProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="p-4 border-b">
+    <div className="px-4 py-3 border-b">
       <Input
         ref={titleRef}
         value={prompt.title}

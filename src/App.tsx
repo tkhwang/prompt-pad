@@ -1,11 +1,13 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { Settings } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Editor } from "@/components/Editor/Editor";
+import { MetaBar } from "@/components/Editor/MetaBar";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { SettingsModal } from "@/components/SettingsModal";
+import { SearchBar } from "@/components/Sidebar/SearchBar";
 import { Sidebar } from "@/components/Sidebar/Sidebar";
+import { SidebarToolbar } from "@/components/Sidebar/SidebarToolbar";
 import { StatusBar } from "@/components/StatusBar";
 import { TemplateModal } from "@/components/TemplateModal";
 import { TopicPanel } from "@/components/TopicPanel/TopicPanel";
@@ -308,20 +310,9 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b">
-        <h1 className="text-sm font-semibold">{t("app.title")}</h1>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setSettingsOpen(true)}
-        >
-          <Settings className="h-4 w-4" />
-        </Button>
-      </div>
-
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
+        {/* Col 1: TopicPanel */}
         <div
           className={cn(
             "shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out",
@@ -338,43 +329,74 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
             onDeleteTopic={handleDeleteTopic}
           />
         </div>
-        <Sidebar
-          prompts={filtered}
-          topics={topics}
-          selectedId={selectedId}
-          query={query}
-          onQueryChange={setQuery}
-          onSelect={setSelectedId}
-          onDelete={deletePrompt}
-          onNewPrompt={handleNewPrompt}
-          viewMode={viewMode}
-          onViewModeToggle={() =>
-            setViewMode((v) => (v === "simple" ? "detail" : "simple"))
-          }
-          selectedTopic={selectedTopic}
-          onSelectTopic={handleSidebarSelectTopic}
-        />
-        <Editor
-          prompt={editingPrompt}
-          onUpdate={setEditingPrompt}
-          titleRef={titleInputRef}
-          bodyRef={bodyInputRef}
-          onTitleEnter={() => {
-            if (editingPrompt) {
-              shouldFocusBodyRef.current = true;
-              updatePrompt(editingPrompt);
-              // Fallback: double rAF for when filename doesn't change (editingPrompt unchanged)
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  if (shouldFocusBodyRef.current) {
-                    shouldFocusBodyRef.current = false;
-                    bodyInputRef.current?.focus();
-                  }
-                });
-              });
-            }
-          }}
-        />
+
+        {/* Cols 2+3 wrapper */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Row 1: Search spanning full width */}
+          <SearchBar
+            query={query}
+            onQueryChange={setQuery}
+            onSettingsOpen={() => setSettingsOpen(true)}
+          />
+
+          {/* Row 2+: Split into sidebar-list and editor */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Col 2: Toolbar + Sidebar list */}
+            <div className="flex flex-col shrink-0 w-72 border-r">
+              <SidebarToolbar
+                viewMode={viewMode}
+                onViewModeToggle={() =>
+                  setViewMode((v) => (v === "simple" ? "detail" : "simple"))
+                }
+                onNewPrompt={handleNewPrompt}
+              />
+              <Sidebar
+                prompts={filtered}
+                topics={topics}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onDelete={deletePrompt}
+                viewMode={viewMode}
+                selectedTopic={selectedTopic}
+                onSelectTopic={handleSidebarSelectTopic}
+              />
+            </div>
+
+            {/* Col 3: MetaBar + Editor body */}
+            <div className="flex flex-1 flex-col overflow-hidden">
+              {editingPrompt ? (
+                <>
+                  <MetaBar
+                    prompt={editingPrompt}
+                    onUpdate={setEditingPrompt}
+                    titleRef={titleInputRef}
+                    onEnter={() => {
+                      shouldFocusBodyRef.current = true;
+                      updatePrompt(editingPrompt);
+                      requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                          if (shouldFocusBodyRef.current) {
+                            shouldFocusBodyRef.current = false;
+                            bodyInputRef.current?.focus();
+                          }
+                        });
+                      });
+                    }}
+                  />
+                  <Editor
+                    prompt={editingPrompt}
+                    onUpdate={setEditingPrompt}
+                    bodyRef={bodyInputRef}
+                  />
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                  {t("editor.empty")}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Status bar */}

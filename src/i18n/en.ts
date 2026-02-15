@@ -88,6 +88,7 @@ export const en = {
   sidebar: {
     empty: "No prompts yet. Click + to create one.",
     search_placeholder: "Search prompts...",
+    new_prompt: "New Prompt",
   },
 
   topic_panel: {

@@ -4,20 +4,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTranslation } from "@/i18n/I18nProvider";
 import type { Prompt, Topic } from "@/types/prompt";
 import { PromptItem } from "./PromptItem";
-import { SearchBar } from "./SearchBar";
 import { TopicGroup } from "./TopicGroup";
 
 interface SidebarProps {
   prompts: Prompt[];
   topics: Topic[];
   selectedId: string | null;
-  query: string;
-  onQueryChange: (query: string) => void;
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
-  onNewPrompt: () => void;
   viewMode: "simple" | "detail";
-  onViewModeToggle: () => void;
   selectedTopic: string | null;
   onSelectTopic: (topic: string | null) => void;
 }
@@ -26,13 +21,9 @@ export function Sidebar({
   prompts,
   topics,
   selectedId,
-  query,
-  onQueryChange,
   onSelect,
   onDelete,
-  onNewPrompt,
   viewMode,
-  onViewModeToggle,
   selectedTopic,
   onSelectTopic,
 }: SidebarProps) {
@@ -64,14 +55,7 @@ export function Sidebar({
   }, [prompts, selectedTopic]);
 
   return (
-    <div className="flex flex-col h-full border-r w-72">
-      <SearchBar
-        query={query}
-        onQueryChange={onQueryChange}
-        onNewPrompt={onNewPrompt}
-        viewMode={viewMode}
-        onViewModeToggle={onViewModeToggle}
-      />
+    <div className="flex flex-col flex-1 overflow-hidden">
       {selectedTopic !== null && (
         <div className="animate-in fade-in duration-200">
           <button

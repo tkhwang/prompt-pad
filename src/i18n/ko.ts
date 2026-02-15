@@ -93,6 +93,7 @@ export const ko: DeepStringify<typeof en> = {
   sidebar: {
     empty: "프롬프트가 없습니다. +를 눌러 만드세요.",
     search_placeholder: "프롬프트 검색...",
+    new_prompt: "새 프롬프트",
   },
 
   topic_panel: {
