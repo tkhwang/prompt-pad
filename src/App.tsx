@@ -173,10 +173,23 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     }
   }, [editingPrompt]);
 
-  useAutoSave(
+  const flushAutoSave = useAutoSave(
     editingPrompt,
     updatePrompt,
     PROMPT_FILE_TITLE_AUTO_SAVE_DELAY_MS,
+  );
+
+  const handleSelectPrompt = useCallback(
+    async (id: string) => {
+      try {
+        await flushAutoSave();
+      } catch (err) {
+        console.error("Failed to flush auto-save before prompt switch:", err);
+      }
+      setSelectedId(id);
+      setEditorMode("view");
+    },
+    [flushAutoSave, setSelectedId],
   );
 
   const handleCreatePromptInTopic = useCallback(
@@ -345,10 +358,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
                 prompts={filtered}
                 topics={topics}
                 selectedId={selectedId}
-                onSelect={(id) => {
-                  setSelectedId(id);
-                  setEditorMode("view");
-                }}
+                onSelect={handleSelectPrompt}
                 onDelete={deletePrompt}
                 viewMode={viewMode}
                 selectedTopic={selectedTopic}
