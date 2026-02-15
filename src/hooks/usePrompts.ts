@@ -169,7 +169,9 @@ export function usePrompts(promptDir: string) {
 
       await deletePromptFile(prompt.filePath);
 
-      setPrompts((prev) => prev.filter((p) => p.id !== promptId));
+      const remainingPrompts = prompts.filter((p) => p.id !== promptId);
+
+      setPrompts(remainingPrompts);
       setTopics((prev) =>
         prev.map((t) =>
           t.name === prompt.topic
@@ -179,8 +181,9 @@ export function usePrompts(promptDir: string) {
       );
 
       if (selectedId === promptId) {
-        const remaining = prompts.filter((p) => p.id !== promptId);
-        setSelectedId(remaining.length > 0 ? remaining[0].id : null);
+        setSelectedId(
+          remainingPrompts.length > 0 ? remainingPrompts[0].id : null,
+        );
       }
     },
     [prompts, selectedId],
@@ -244,13 +247,15 @@ export function usePrompts(promptDir: string) {
       const deletedIds = new Set(
         prompts.filter((p) => p.topic === name).map((p) => p.id),
       );
+      const remainingPrompts = prompts.filter((p) => p.topic !== name);
 
       setTopics((prev) => prev.filter((t) => t.name !== name));
-      setPrompts((prev) => prev.filter((p) => p.topic !== name));
+      setPrompts(remainingPrompts);
 
       if (selectedId && deletedIds.has(selectedId)) {
-        const remaining = prompts.filter((p) => !deletedIds.has(p.id));
-        setSelectedId(remaining.length > 0 ? remaining[0].id : null);
+        setSelectedId(
+          remainingPrompts.length > 0 ? remainingPrompts[0].id : null,
+        );
       }
     },
     [promptDir, prompts, selectedId],
