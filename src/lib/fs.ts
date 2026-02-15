@@ -1,3 +1,4 @@
+import { join } from "@tauri-apps/api/path";
 import {
   exists,
   mkdir,
@@ -59,4 +60,25 @@ export async function renameEntry(
   newPath: string,
 ): Promise<void> {
   await rename(oldPath, newPath);
+}
+
+export async function findAvailablePath(
+  directory: string,
+  baseName: string,
+  options?: { excludePath?: string },
+): Promise<{ filePath: string; counter: number }> {
+  let counter = 0;
+
+  while (true) {
+    const fileName =
+      counter === 0 ? `${baseName}.md` : `${baseName}-${counter}.md`;
+    const filePath = await join(directory, fileName);
+    const isExcluded = options?.excludePath === filePath;
+
+    if (isExcluded || !(await fileExists(filePath))) {
+      return { filePath, counter };
+    }
+
+    counter++;
+  }
 }

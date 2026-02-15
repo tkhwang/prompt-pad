@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   deletePromptFile,
   ensureDir,
-  fileExists,
+  findAvailablePath,
   listMarkdownFiles,
   listTopicDirs,
   readPromptFile,
@@ -80,17 +80,11 @@ export function usePrompts(promptDir: string) {
       await ensureDir(topicPath);
 
       const baseName = titleToFileName(title).replace(/\.md$/, "");
-      let fileName = `${baseName}.md`;
-      let filePath = await join(topicPath, fileName);
-      let finalTitle = title;
-      let counter = 1;
-
-      while (await fileExists(filePath)) {
-        fileName = `${baseName}-${counter}.md`;
-        filePath = await join(topicPath, fileName);
-        finalTitle = `${title} (${counter})`;
-        counter++;
-      }
+      const { filePath, counter } = await findAvailablePath(
+        topicPath,
+        baseName,
+      );
+      const finalTitle = counter === 0 ? title : `${title} (${counter})`;
 
       const now = new Date().toISOString();
 
@@ -141,15 +135,10 @@ export function usePrompts(promptDir: string) {
 
     // Rename file if title-derived filename differs and is valid
     if (newFileName !== oldFileName && newFileName !== ".md") {
-      let newFilePath = await join(dir, newFileName);
-      let counter = 1;
-
-      // Handle filename collisions (skip self — same path means no conflict)
-      while ((await fileExists(newFilePath)) && newFilePath !== oldFilePath) {
-        const base = newFileName.replace(/\.md$/, "");
-        newFilePath = await join(dir, `${base}-${counter}.md`);
-        counter++;
-      }
+      const baseName = newFileName.replace(/\.md$/, "");
+      const { filePath: newFilePath } = await findAvailablePath(dir, baseName, {
+        excludePath: oldFilePath,
+      });
 
       // Only rename if the path actually changed
       if (newFilePath !== oldFilePath) {
