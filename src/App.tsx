@@ -8,6 +8,7 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { StatusBar } from "@/components/StatusBar";
 import { TemplateModal } from "@/components/TemplateModal";
+import { TopicPanel } from "@/components/TopicPanel/TopicPanel";
 import { Button } from "@/components/ui/button";
 import { PROMPT_FILE_TITLE_AUTO_SAVE_DELAY_MS } from "@/consts";
 import { useAutoSave } from "@/hooks/useAutoSave";
@@ -18,6 +19,7 @@ import type { Language } from "@/i18n";
 import { I18nProvider, useTranslation } from "@/i18n/I18nProvider";
 import { extractVariables } from "@/lib/template";
 import { generateTitle } from "@/lib/title-generator";
+import { cn } from "@/lib/utils";
 
 interface AppContentProps {
   onLanguageOverride: (language: Language) => void;
@@ -41,6 +43,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
 
   const {
     prompts,
+    topics,
     selectedPrompt,
     selectedId,
     loading,
@@ -57,6 +60,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"simple" | "detail">("detail");
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
 
   const titleInputRef = useRef<HTMLInputElement>(null);
   const bodyInputRef = useRef<HTMLTextAreaElement>(null);
@@ -96,7 +100,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const handleNewPrompt = useCallback(async () => {
     try {
       const title = generateTitle(language);
-      const newPrompt = await createPrompt(title, "General");
+      const newPrompt = await createPrompt(title, selectedTopic ?? "General");
       flushSync(() => {
         setEditingPrompt(newPrompt);
       });
@@ -115,7 +119,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     } catch (err) {
       console.error("Failed to create prompt:", err);
     }
-  }, [createPrompt, language]);
+  }, [createPrompt, language, selectedTopic]);
 
   const handleCopy = useCallback(async () => {
     if (editingPrompt) {
@@ -210,6 +214,19 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
 
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
+        <div
+          className={cn(
+            "shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out",
+            selectedTopic !== null ? "w-48" : "w-0",
+          )}
+        >
+          <TopicPanel
+            topics={topics}
+            totalPromptCount={filtered.length}
+            selectedTopic={selectedTopic}
+            onSelectTopic={setSelectedTopic}
+          />
+        </div>
         <Sidebar
           prompts={filtered}
           selectedId={selectedId}
@@ -222,6 +239,8 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
           onViewModeToggle={() =>
             setViewMode((v) => (v === "simple" ? "detail" : "simple"))
           }
+          selectedTopic={selectedTopic}
+          onSelectTopic={setSelectedTopic}
         />
         <Editor
           prompt={editingPrompt}

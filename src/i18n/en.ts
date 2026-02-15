@@ -88,6 +88,10 @@ export const en = {
     search_placeholder: "Search prompts...",
   },
 
+  topic_panel: {
+    all_prompts: "All Prompts",
+  },
+
   prompt: {
     delete_confirm: 'Delete "{{title}}"?',
     delete_description: "This action cannot be undone.",

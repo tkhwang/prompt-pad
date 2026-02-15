@@ -93,6 +93,10 @@ export const ko: DeepStringify<typeof en> = {
     search_placeholder: "프롬프트 검색...",
   },
 
+  topic_panel: {
+    all_prompts: "모든 프롬프트",
+  },
+
   prompt: {
     delete_confirm: '"{{title}}"을(를) 삭제할까요?',
     delete_description: "이 작업은 되돌릴 수 없습니다.",

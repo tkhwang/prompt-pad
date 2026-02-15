@@ -1,7 +1,9 @@
+import { ChevronLeft } from "lucide-react";
 import { useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTranslation } from "@/i18n/I18nProvider";
 import type { Prompt } from "@/types/prompt";
+import { PromptItem } from "./PromptItem";
 import { SearchBar } from "./SearchBar";
 import { TopicGroup } from "./TopicGroup";
 
@@ -15,6 +17,8 @@ interface SidebarProps {
   onNewPrompt: () => void;
   viewMode: "simple" | "detail";
   onViewModeToggle: () => void;
+  selectedTopic: string | null;
+  onSelectTopic: (topic: string | null) => void;
 }
 
 export function Sidebar({
@@ -27,6 +31,8 @@ export function Sidebar({
   onNewPrompt,
   viewMode,
   onViewModeToggle,
+  selectedTopic,
+  onSelectTopic,
 }: SidebarProps) {
   const { t } = useTranslation();
 
@@ -44,6 +50,13 @@ export function Sidebar({
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [prompts]);
 
+  const topicPrompts = useMemo(() => {
+    if (selectedTopic === null) return [];
+    return prompts
+      .filter((p) => (p.topic || "General") === selectedTopic)
+      .sort((a, b) => b.created.localeCompare(a.created));
+  }, [prompts, selectedTopic]);
+
   return (
     <div className="flex flex-col h-full border-r w-72">
       <SearchBar
@@ -53,23 +66,53 @@ export function Sidebar({
         viewMode={viewMode}
         onViewModeToggle={onViewModeToggle}
       />
+      {selectedTopic !== null && (
+        <div className="animate-in fade-in duration-200">
+          <button
+            type="button"
+            onClick={() => onSelectTopic(null)}
+            className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground border-b"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+            <span>{selectedTopic}</span>
+          </button>
+        </div>
+      )}
       <ScrollArea className="flex-1">
-        {grouped.map(([topic, topicPrompts]) => (
-          <TopicGroup
-            key={topic}
-            name={topic}
-            prompts={topicPrompts}
-            selectedId={selectedId}
-            viewMode={viewMode}
-            onSelect={onSelect}
-            onDelete={onDelete}
-          />
-        ))}
-        {grouped.length === 0 && (
-          <div className="p-4 text-sm text-muted-foreground text-center">
-            {t("sidebar.empty")}
-          </div>
-        )}
+        <div
+          key={selectedTopic ?? "all"}
+          className="animate-in fade-in duration-200"
+        >
+          {selectedTopic === null
+            ? grouped.map(([topic, groupPrompts]) => (
+                <TopicGroup
+                  key={topic}
+                  name={topic}
+                  prompts={groupPrompts}
+                  selectedId={selectedId}
+                  viewMode={viewMode}
+                  onSelect={onSelect}
+                  onDelete={onDelete}
+                  onSelectTopic={onSelectTopic}
+                />
+              ))
+            : topicPrompts.map((prompt) => (
+                <PromptItem
+                  key={prompt.id}
+                  prompt={prompt}
+                  isSelected={prompt.id === selectedId}
+                  viewMode={viewMode}
+                  onClick={() => onSelect(prompt.id)}
+                  onDelete={() => onDelete(prompt.id)}
+                />
+              ))}
+          {((selectedTopic === null && grouped.length === 0) ||
+            (selectedTopic !== null && topicPrompts.length === 0)) && (
+            <div className="p-4 text-sm text-muted-foreground text-center">
+              {t("sidebar.empty")}
+            </div>
+          )}
+        </div>
       </ScrollArea>
     </div>
   );
