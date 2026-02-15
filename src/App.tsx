@@ -10,6 +10,16 @@ import { StatusBar } from "@/components/StatusBar";
 import { TemplateModal } from "@/components/TemplateModal";
 import { TopicPanel } from "@/components/TopicPanel/TopicPanel";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { PROMPT_FILE_TITLE_AUTO_SAVE_DELAY_MS } from "@/consts";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { usePrompts } from "@/hooks/usePrompts";
@@ -65,6 +75,9 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [viewMode, setViewMode] = useState<"simple" | "detail">("detail");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [topicPanelOpen, setTopicPanelOpen] = useState(false);
+  const [createTopicDialogOpen, setCreateTopicDialogOpen] = useState(false);
+  const [selectTopicDialogOpen, setSelectTopicDialogOpen] = useState(false);
+  const [topicNameInput, setTopicNameInput] = useState("");
 
   // Close animation 중 TopicPanel에 보여줄 토픽 (마지막 non-null 값 유지)
   const lastTopicRef = useRef<string | null>(null);
@@ -95,6 +108,20 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     },
     [createTopic],
   );
+
+  const handleNewTopicShortcut = useCallback(() => {
+    setTopicNameInput("");
+    setCreateTopicDialogOpen(true);
+  }, []);
+
+  const handleCreateTopicSubmit = useCallback(() => {
+    const name = topicNameInput.trim();
+    if (name) {
+      createTopic(name);
+      setTopicNameInput("");
+      setCreateTopicDialogOpen(false);
+    }
+  }, [topicNameInput, createTopic]);
 
   const handleRenameTopic = useCallback(
     async (oldName: string, newName: string) => {
@@ -152,29 +179,52 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     PROMPT_FILE_TITLE_AUTO_SAVE_DELAY_MS,
   );
 
-  const handleNewPrompt = useCallback(async () => {
-    try {
-      const title = generateTitle(language);
-      const newPrompt = await createPrompt(title, selectedTopic ?? "General");
-      flushSync(() => {
-        setEditingPrompt(newPrompt);
-      });
-      requestAnimationFrame(() => {
-        if (titleInputRef.current) {
-          titleInputRef.current.focus();
-          titleInputRef.current.select();
-        } else {
-          // Fallback: Input may not be mounted yet (empty state → editor transition)
-          requestAnimationFrame(() => {
-            titleInputRef.current?.focus();
-            titleInputRef.current?.select();
-          });
-        }
-      });
-    } catch (err) {
-      console.error("Failed to create prompt:", err);
+  const handleCreatePromptInTopic = useCallback(
+    async (topic: string) => {
+      try {
+        const title = generateTitle(language);
+        const newPrompt = await createPrompt(title, topic);
+        flushSync(() => {
+          setEditingPrompt(newPrompt);
+        });
+        requestAnimationFrame(() => {
+          if (titleInputRef.current) {
+            titleInputRef.current.focus();
+            titleInputRef.current.select();
+          } else {
+            // Fallback: Input may not be mounted yet (empty state → editor transition)
+            requestAnimationFrame(() => {
+              titleInputRef.current?.focus();
+              titleInputRef.current?.select();
+            });
+          }
+        });
+      } catch (err) {
+        console.error("Failed to create prompt:", err);
+      }
+    },
+    [createPrompt, language],
+  );
+
+  const handleNewPrompt = useCallback(() => {
+    if (selectedTopic === null) {
+      if (topics.length === 0) {
+        handleCreatePromptInTopic("General");
+      } else {
+        setSelectTopicDialogOpen(true);
+      }
+      return;
     }
-  }, [createPrompt, language, selectedTopic]);
+    handleCreatePromptInTopic(selectedTopic);
+  }, [selectedTopic, topics.length, handleCreatePromptInTopic]);
+
+  const handleSelectTopicAndCreate = useCallback(
+    (topicName: string) => {
+      setSelectTopicDialogOpen(false);
+      handleCreatePromptInTopic(topicName);
+    },
+    [handleCreatePromptInTopic],
+  );
 
   const handleCopy = useCallback(async () => {
     if (editingPrompt) {
@@ -191,7 +241,10 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.metaKey && e.key === "n") {
+      if (e.metaKey && e.shiftKey && e.key === "n") {
+        e.preventDefault();
+        handleNewTopicShortcut();
+      } else if (e.metaKey && e.key === "n") {
         e.preventDefault();
         handleNewPrompt();
       }
@@ -202,7 +255,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleNewPrompt, handleTemplate]);
+  }, [handleNewPrompt, handleNewTopicShortcut, handleTemplate]);
 
   const handleSettingsUpdate = useCallback(
     async (partial: Partial<import("@/types/settings").AppSettings>) => {
@@ -326,7 +379,8 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
 
       {/* Status bar */}
       <StatusBar
-        onNew={handleNewPrompt}
+        onNewPrompt={handleNewPrompt}
+        onNewTopic={handleNewTopicShortcut}
         onCopy={handleCopy}
         onTemplate={handleTemplate}
         hasSelection={!!editingPrompt}
@@ -349,6 +403,64 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
           onRerunSetup={handleRerunSetup}
         />
       )}
+
+      {/* Create Topic Dialog (from hotkey) */}
+      <Dialog
+        open={createTopicDialogOpen}
+        onOpenChange={setCreateTopicDialogOpen}
+      >
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>{t("topic_panel.create")}</DialogTitle>
+          </DialogHeader>
+          <Input
+            placeholder={t("topic_panel.create_placeholder")}
+            value={topicNameInput}
+            onChange={(e) => setTopicNameInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleCreateTopicSubmit();
+            }}
+            autoFocus
+          />
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">{t("topic_panel.cancel")}</Button>
+            </DialogClose>
+            <Button
+              onClick={handleCreateTopicSubmit}
+              disabled={!topicNameInput.trim()}
+            >
+              {t("topic_panel.create")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Select Topic Dialog (for ⌘N in All Prompts view) */}
+      <Dialog
+        open={selectTopicDialogOpen}
+        onOpenChange={setSelectTopicDialogOpen}
+      >
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>{t("status.select_topic")}</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-64">
+            <div className="flex flex-col gap-1">
+              {topics.map((topic) => (
+                <Button
+                  key={topic.name}
+                  variant="ghost"
+                  className="justify-start"
+                  onClick={() => handleSelectTopicAndCreate(topic.name)}
+                >
+                  {topic.name}
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

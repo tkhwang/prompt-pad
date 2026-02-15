@@ -69,9 +69,11 @@ export const ko: DeepStringify<typeof en> = {
   },
 
   status: {
-    new: "새로 만들기",
+    new_prompt: "새 프롬프트",
+    new_topic: "새 토픽",
     copy: "복사",
     use_template: "템플릿 사용",
+    select_topic: "토픽 선택",
   },
 
   template: {

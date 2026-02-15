@@ -64,9 +64,11 @@ export const en = {
   },
 
   status: {
-    new: "New",
+    new_prompt: "New Prompt",
+    new_topic: "New Topic",
     copy: "Copy",
     use_template: "Use Template",
+    select_topic: "Select Topic",
   },
 
   template: {
