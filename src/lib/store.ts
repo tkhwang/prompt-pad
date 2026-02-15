@@ -1,4 +1,4 @@
-import { homeDir, join } from "@tauri-apps/api/path";
+import { appDataDir, join } from "@tauri-apps/api/path";
 import { LazyStore } from "@tauri-apps/plugin-store";
 import type { AppSettings } from "@/types/settings";
 
@@ -7,8 +7,8 @@ const store = new LazyStore("settings.json");
 const DEFAULT_DIR_NAME = "PromptPad";
 
 export async function getDefaultPromptDir(): Promise<string> {
-  const home = await homeDir();
-  return await join(home, DEFAULT_DIR_NAME);
+  const appData = await appDataDir();
+  return await join(appData, DEFAULT_DIR_NAME);
 }
 
 async function getDefaults(): Promise<AppSettings> {

@@ -28,6 +28,7 @@ export function OnboardingWizard({
     const selected = await open({
       title: t("onboarding.browse_dialog_title"),
       directory: true,
+      recursive: true,
       defaultPath: settings.promptDir,
     });
     if (selected) {

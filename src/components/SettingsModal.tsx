@@ -83,6 +83,7 @@ export function SettingsModal({
     const selected = await open({
       title: t("settings.browse_dialog_title"),
       directory: true,
+      recursive: true,
       defaultPath: dir,
     });
     if (selected) {
@@ -165,7 +166,7 @@ export function SettingsModal({
                     <div className="flex gap-2">
                       <Input
                         value={dir}
-                        onChange={(e) => setDir(e.target.value)}
+                        readOnly
                         className="flex-1 h-8 text-sm"
                       />
                       <Button
