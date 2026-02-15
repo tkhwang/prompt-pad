@@ -90,6 +90,13 @@ export const en = {
 
   topic_panel: {
     all_prompts: "All Prompts",
+    create: "New Topic",
+    create_placeholder: "Topic name",
+    rename: "Rename",
+    delete: "Delete",
+    delete_confirm: 'Delete "{{name}}" and all its prompts?',
+    delete_description: "This action cannot be undone.",
+    cancel: "Cancel",
   },
 
   prompt: {

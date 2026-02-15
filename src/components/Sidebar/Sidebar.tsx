@@ -2,13 +2,14 @@ import { ChevronLeft } from "lucide-react";
 import { useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTranslation } from "@/i18n/I18nProvider";
-import type { Prompt } from "@/types/prompt";
+import type { Prompt, Topic } from "@/types/prompt";
 import { PromptItem } from "./PromptItem";
 import { SearchBar } from "./SearchBar";
 import { TopicGroup } from "./TopicGroup";
 
 interface SidebarProps {
   prompts: Prompt[];
+  topics: Topic[];
   selectedId: string | null;
   query: string;
   onQueryChange: (query: string) => void;
@@ -23,6 +24,7 @@ interface SidebarProps {
 
 export function Sidebar({
   prompts,
+  topics,
   selectedId,
   query,
   onQueryChange,
@@ -38,6 +40,10 @@ export function Sidebar({
 
   const grouped = useMemo(() => {
     const map = new Map<string, Prompt[]>();
+    // Initialize all known topics (including empty ones)
+    for (const topic of topics) {
+      map.set(topic.name, []);
+    }
     for (const prompt of prompts) {
       const topic = prompt.topic || "General";
       if (!map.has(topic)) map.set(topic, []);
@@ -48,7 +54,7 @@ export function Sidebar({
       list.sort((a, b) => b.created.localeCompare(a.created));
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [prompts]);
+  }, [prompts, topics]);
 
   const topicPrompts = useMemo(() => {
     if (selectedTopic === null) return [];

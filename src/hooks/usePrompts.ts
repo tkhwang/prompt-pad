@@ -7,6 +7,7 @@ import {
   listMarkdownFiles,
   listTopicDirs,
   readPromptFile,
+  removeDir,
   renameEntry,
   writePromptFile,
 } from "@/lib/fs";
@@ -196,6 +197,76 @@ export function usePrompts(promptDir: string) {
     [prompts, selectedId],
   );
 
+  const createTopic = useCallback(
+    async (name: string) => {
+      const topicPath = await join(promptDir, name);
+      await ensureDir(topicPath);
+      setTopics((prev) => [...prev, { name, path: topicPath, promptCount: 0 }]);
+    },
+    [promptDir],
+  );
+
+  const renameTopic = useCallback(
+    async (oldName: string, newName: string) => {
+      const oldPath = await join(promptDir, oldName);
+      const newPath = await join(promptDir, newName);
+      await renameEntry(oldPath, newPath);
+
+      setTopics((prev) =>
+        prev.map((t) =>
+          t.name === oldName ? { ...t, name: newName, path: newPath } : t,
+        ),
+      );
+
+      setPrompts((prev) =>
+        prev.map((p) => {
+          if (p.topic !== oldName) return p;
+          const newFilePath = p.filePath.replace(
+            `/${oldName}/`,
+            `/${newName}/`,
+          );
+          return {
+            ...p,
+            topic: newName,
+            id: newFilePath,
+            filePath: newFilePath,
+          };
+        }),
+      );
+
+      // Update selectedId if it belonged to renamed topic
+      setSelectedId((prev) => {
+        if (prev?.includes(`/${oldName}/`)) {
+          return prev.replace(`/${oldName}/`, `/${newName}/`);
+        }
+        return prev;
+      });
+
+      return newName;
+    },
+    [promptDir],
+  );
+
+  const deleteTopic = useCallback(
+    async (name: string) => {
+      const topicPath = await join(promptDir, name);
+      await removeDir(topicPath);
+
+      const deletedIds = new Set(
+        prompts.filter((p) => p.topic === name).map((p) => p.id),
+      );
+
+      setTopics((prev) => prev.filter((t) => t.name !== name));
+      setPrompts((prev) => prev.filter((p) => p.topic !== name));
+
+      if (selectedId && deletedIds.has(selectedId)) {
+        const remaining = prompts.filter((p) => !deletedIds.has(p.id));
+        setSelectedId(remaining.length > 0 ? remaining[0].id : null);
+      }
+    },
+    [promptDir, prompts, selectedId],
+  );
+
   return {
     prompts,
     topics,
@@ -207,5 +278,8 @@ export function usePrompts(promptDir: string) {
     createPrompt,
     updatePrompt,
     deletePrompt,
+    createTopic,
+    renameTopic,
+    deleteTopic,
   };
 }

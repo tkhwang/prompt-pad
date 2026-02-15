@@ -95,6 +95,13 @@ export const ko: DeepStringify<typeof en> = {
 
   topic_panel: {
     all_prompts: "모든 프롬프트",
+    create: "새 토픽",
+    create_placeholder: "토픽 이름",
+    rename: "이름 변경",
+    delete: "삭제",
+    delete_confirm: '"{{name}}"과(와) 모든 프롬프트를 삭제할까요?',
+    delete_description: "이 작업은 되돌릴 수 없습니다.",
+    cancel: "취소",
   },
 
   prompt: {

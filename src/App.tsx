@@ -52,6 +52,9 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     createPrompt,
     updatePrompt,
     deletePrompt,
+    createTopic,
+    renameTopic,
+    deleteTopic,
   } = usePrompts(settings?.promptDir ?? "");
 
   const { query, setQuery, filtered } = useSearch(prompts);
@@ -85,6 +88,34 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     }
     setTopicPanelOpen(true);
   }, []);
+
+  const handleCreateTopic = useCallback(
+    (name: string) => {
+      createTopic(name);
+    },
+    [createTopic],
+  );
+
+  const handleRenameTopic = useCallback(
+    async (oldName: string, newName: string) => {
+      await renameTopic(oldName, newName);
+      if (selectedTopic === oldName) {
+        setSelectedTopic(newName);
+      }
+    },
+    [renameTopic, selectedTopic],
+  );
+
+  const handleDeleteTopic = useCallback(
+    async (name: string) => {
+      await deleteTopic(name);
+      if (selectedTopic === name) {
+        setSelectedTopic(null);
+        setTopicPanelOpen(false);
+      }
+    },
+    [deleteTopic, selectedTopic],
+  );
 
   const titleInputRef = useRef<HTMLInputElement>(null);
   const bodyInputRef = useRef<HTMLTextAreaElement>(null);
@@ -249,10 +280,14 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
             totalPromptCount={filtered.length}
             selectedTopic={panelDisplayTopic}
             onSelectTopic={handlePanelSelectTopic}
+            onCreateTopic={handleCreateTopic}
+            onRenameTopic={handleRenameTopic}
+            onDeleteTopic={handleDeleteTopic}
           />
         </div>
         <Sidebar
           prompts={filtered}
+          topics={topics}
           selectedId={selectedId}
           query={query}
           onQueryChange={setQuery}

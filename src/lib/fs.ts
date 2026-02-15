@@ -50,6 +50,10 @@ export async function fileExists(path: string): Promise<boolean> {
   return await exists(path);
 }
 
+export async function removeDir(path: string): Promise<void> {
+  await remove(path, { recursive: true });
+}
+
 export async function renameEntry(
   oldPath: string,
   newPath: string,
