@@ -1,3 +1,4 @@
+import { dump, load } from "js-yaml";
 import type { Prompt } from "@/types/prompt";
 
 interface Frontmatter {
@@ -13,14 +14,14 @@ export function parseMarkdown(
   filePath: string,
   topic: string,
 ): Prompt {
-  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
+  const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
   const match = content.match(frontmatterRegex);
 
   let frontmatter: Partial<Frontmatter> = {};
   let body = content;
 
   if (match) {
-    frontmatter = parseYamlSimple(match[1]);
+    frontmatter = parseFrontmatter(match[1]);
     body = match[2].trim();
   }
 
@@ -40,61 +41,77 @@ export function parseMarkdown(
 }
 
 export function serializeMarkdown(prompt: Prompt): string {
-  const lines = [
-    "---",
-    `title: "${prompt.title}"`,
-    `created: ${prompt.created}`,
-    `updated: ${prompt.updated}`,
-    `tags: [${prompt.tags.map((t) => `"${t}"`).join(", ")}]`,
-  ];
+  const frontmatter: Record<string, unknown> = {
+    title: prompt.title,
+    created: prompt.created,
+    updated: prompt.updated,
+    tags: prompt.tags,
+  };
 
   if (prompt.templateValues) {
     const nonEmpty = Object.fromEntries(
       Object.entries(prompt.templateValues).filter(([, v]) => v !== ""),
     );
     if (Object.keys(nonEmpty).length > 0) {
-      lines.push(`templateValues: ${JSON.stringify(nonEmpty)}`);
+      frontmatter.templateValues = nonEmpty;
     }
   }
 
-  lines.push("---");
+  const yaml = dump(frontmatter, {
+    noRefs: true,
+    lineWidth: -1,
+  });
 
-  return `${lines.join("\n")}\n\n${prompt.body}\n`;
+  return `---\n${yaml}---\n\n${prompt.body}\n`;
 }
 
-function parseYamlSimple(yaml: string): Partial<Frontmatter> {
-  const result: Record<string, unknown> = {};
+function parseFrontmatter(yaml: string): Partial<Frontmatter> {
+  try {
+    const parsed = load(yaml);
+    if (!isRecord(parsed)) return {};
 
-  for (const line of yaml.split("\n")) {
-    const colonIdx = line.indexOf(":");
-    if (colonIdx === -1) continue;
+    const title = asString(parsed.title);
+    const created = asString(parsed.created);
+    const updated = asString(parsed.updated);
+    const tags = asStringArray(parsed.tags);
+    const templateValues = asStringRecord(parsed.templateValues);
 
-    const key = line.slice(0, colonIdx).trim();
-    let value: string | string[] = line.slice(colonIdx + 1).trim();
-
-    if (value.startsWith("{") && value.endsWith("}")) {
-      try {
-        result[key] = JSON.parse(value);
-      } catch {
-        result[key] = value;
-      }
-      continue;
-    }
-
-    if (value.startsWith("[") && value.endsWith("]")) {
-      result[key] = value
-        .slice(1, -1)
-        .split(",")
-        .map((s) => s.trim().replace(/^["']|["']$/g, ""))
-        .filter(Boolean);
-      continue;
-    }
-
-    value = value.replace(/^["']|["']$/g, "");
-    result[key] = value;
+    return {
+      ...(title ? { title } : {}),
+      ...(created ? { created } : {}),
+      ...(updated ? { updated } : {}),
+      ...(tags ? { tags } : {}),
+      ...(templateValues ? { templateValues } : {}),
+    };
+  } catch {
+    return {};
   }
+}
 
-  return result as Partial<Frontmatter>;
+function asString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+function asStringArray(value: unknown): string[] | undefined {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string");
+  }
+  return undefined;
+}
+
+function asStringRecord(value: unknown): Record<string, string> | undefined {
+  if (!isRecord(value)) return undefined;
+
+  const entries = Object.entries(value).filter(
+    (entry): entry is [string, string] => typeof entry[1] === "string",
+  );
+
+  if (entries.length === 0) return undefined;
+  return Object.fromEntries(entries);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function fileNameToTitle(filePath: string): string {
