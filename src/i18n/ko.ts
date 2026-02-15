@@ -12,13 +12,7 @@ export const ko: DeepStringify<typeof en> = {
   },
 
   new_prompt: {
-    title: "새 프롬프트",
-    label_title: "제목",
-    placeholder_title: "프롬프트 제목",
-    label_topic: "주제 (폴더)",
-    placeholder_topic: "일반",
-    cancel: "취소",
-    create: "만들기",
+    untitled: "제목 없음",
   },
 
   onboarding: {
@@ -91,9 +85,6 @@ export const ko: DeepStringify<typeof en> = {
     empty: "프롬프트를 선택하거나 새로 만드세요",
     placeholder_title: "프롬프트 제목...",
     placeholder_body: "여기에 프롬프트를 작성하세요... {{variable_name}} 형식으로 템플릿 변수를 사용할 수 있습니다.",
-    topic_label: "주제:",
-    tags_label: "태그:",
-    placeholder_tag: "태그 추가...",
   },
 
   sidebar: {

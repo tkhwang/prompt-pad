@@ -6,13 +6,7 @@ export const en = {
   },
 
   new_prompt: {
-    title: "New Prompt",
-    label_title: "Title",
-    placeholder_title: "Prompt title",
-    label_topic: "Topic (folder)",
-    placeholder_topic: "General",
-    cancel: "Cancel",
-    create: "Create",
+    untitled: "Untitled",
   },
 
   onboarding: {
@@ -85,9 +79,6 @@ export const en = {
     empty: "Select a prompt or create a new one",
     placeholder_title: "Prompt title...",
     placeholder_body: "Write your prompt here... Use {{variable_name}} for template variables.",
-    topic_label: "Topic:",
-    tags_label: "Tags:",
-    placeholder_tag: "Add tag...",
   },
 
   sidebar: {

@@ -15,14 +15,6 @@ import { extractVariables } from "@/lib/template";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import type { Language } from "@/i18n";
 
 interface AppContentProps {
@@ -47,7 +39,6 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
 
   const {
     prompts,
-    topics,
     selectedPrompt,
     selectedId,
     loading,
@@ -62,9 +53,6 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [editingPrompt, setEditingPrompt] = useState(selectedPrompt);
   const [templateOpen, setTemplateOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [newPromptOpen, setNewPromptOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newTopic, setNewTopic] = useState("General");
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -73,22 +61,18 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
 
   useAutoSave(editingPrompt, updatePrompt);
 
-  const handleNewPrompt = useCallback(() => {
-    setNewTitle("");
-    setNewTopic("General");
-    setNewPromptOpen(true);
-  }, []);
-
-  const handleCreateConfirm = useCallback(async () => {
-    const title = newTitle.trim();
-    if (!title) return;
+  const handleNewPrompt = useCallback(async () => {
     try {
-      await createPrompt(title, newTopic.trim() || "General");
-      setNewPromptOpen(false);
+      await createPrompt(t("new_prompt.untitled"), "General");
+      // Focus title input after React re-render
+      requestAnimationFrame(() => {
+        titleInputRef.current?.focus();
+        titleInputRef.current?.select();
+      });
     } catch (err) {
       console.error("Failed to create prompt:", err);
     }
-  }, [newTitle, newTopic, createPrompt]);
+  }, [createPrompt, t]);
 
   const handleCopy = useCallback(async () => {
     if (editingPrompt) {
@@ -194,8 +178,8 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         />
         <Editor
           prompt={editingPrompt}
-          topics={topics.map((tp) => tp.name)}
           onUpdate={setEditingPrompt}
+          titleRef={titleInputRef}
         />
       </div>
 
@@ -224,60 +208,6 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
           onRerunSetup={handleRerunSetup}
         />
       )}
-
-      {/* New Prompt Dialog */}
-      <Dialog open={newPromptOpen} onOpenChange={setNewPromptOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("new_prompt.title")}</DialogTitle>
-          </DialogHeader>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleCreateConfirm();
-            }}
-          >
-            <div className="flex flex-col gap-4 py-2">
-              <div className="flex flex-col gap-2">
-                <label htmlFor="prompt-title" className="text-sm font-medium">
-                  {t("new_prompt.label_title")}
-                </label>
-                <Input
-                  id="prompt-title"
-                  ref={titleInputRef}
-                  placeholder={t("new_prompt.placeholder_title")}
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  autoFocus
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="prompt-topic" className="text-sm font-medium">
-                  {t("new_prompt.label_topic")}
-                </label>
-                <Input
-                  id="prompt-topic"
-                  placeholder={t("new_prompt.placeholder_topic")}
-                  value={newTopic}
-                  onChange={(e) => setNewTopic(e.target.value)}
-                />
-              </div>
-            </div>
-            <DialogFooter className="mt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setNewPromptOpen(false)}
-              >
-                {t("new_prompt.cancel")}
-              </Button>
-              <Button type="submit" disabled={!newTitle.trim()}>
-                {t("new_prompt.create")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
