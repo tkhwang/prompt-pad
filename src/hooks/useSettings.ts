@@ -15,7 +15,7 @@ function applyTheme(theme: ColorTheme) {
 }
 
 function applyFontSize(size: number) {
-  document.documentElement.style.setProperty("--editor-font-size", size + "px");
+  document.documentElement.style.setProperty("--editor-font-size", `${size}px`);
 }
 
 export function useSettings() {
