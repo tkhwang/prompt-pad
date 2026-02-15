@@ -22,20 +22,29 @@ async function getDefaults(): Promise<AppSettings> {
 }
 
 export async function loadSettings(): Promise<AppSettings> {
-  const defaults = await getDefaults();
-  const promptDir =
-    (await store.get<string>("promptDir")) ?? defaults.promptDir;
-  const colorTheme =
-    (await store.get<AppSettings["colorTheme"]>("colorTheme")) ??
-    defaults.colorTheme;
-  const fontSize =
-    (await store.get<AppSettings["fontSize"]>("fontSize")) ?? defaults.fontSize;
-  const language =
-    (await store.get<AppSettings["language"]>("language")) ?? defaults.language;
-  const onboardingComplete =
-    (await store.get<boolean>("onboardingComplete")) ??
-    defaults.onboardingComplete;
-  return { promptDir, colorTheme, fontSize, language, onboardingComplete };
+  const [
+    defaults,
+    promptDir,
+    colorTheme,
+    fontSize,
+    language,
+    onboardingComplete,
+  ] = await Promise.all([
+    getDefaults(),
+    store.get<string>("promptDir"),
+    store.get<AppSettings["colorTheme"]>("colorTheme"),
+    store.get<AppSettings["fontSize"]>("fontSize"),
+    store.get<AppSettings["language"]>("language"),
+    store.get<boolean>("onboardingComplete"),
+  ]);
+
+  return {
+    promptDir: promptDir ?? defaults.promptDir,
+    colorTheme: colorTheme ?? defaults.colorTheme,
+    fontSize: fontSize ?? defaults.fontSize,
+    language: language ?? defaults.language,
+    onboardingComplete: onboardingComplete ?? defaults.onboardingComplete,
+  };
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
