@@ -71,15 +71,13 @@ export const ko: DeepStringify<typeof en> = {
     new_prompt: "새 프롬프트",
     new_topic: "새 토픽",
     copy: "복사",
-    use_template: "템플릿 사용",
     select_topic: "토픽 선택",
   },
 
   template: {
-    title: "템플릿 변수 입력",
+    title: "템플릿 변수",
     placeholder: "{{name}} 입력...",
-    cancel: "취소",
-    copy: "클립보드에 복사",
+    copy: "변수 적용 후 복사",
   },
 
   editor: {

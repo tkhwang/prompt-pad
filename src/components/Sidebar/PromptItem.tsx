@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { Sparkles } from "lucide-react";
+import { useMemo, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTranslation } from "@/i18n/I18nProvider";
+import { extractVariables } from "@/lib/template";
 import { cn } from "@/lib/utils";
 import type { Prompt } from "@/types/prompt";
 
@@ -31,6 +33,7 @@ export function PromptItem({
   const { t } = useTranslation();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const preview = prompt.body.slice(0, 80).replace(/\n/g, " ");
+  const variables = useMemo(() => extractVariables(prompt.body), [prompt.body]);
 
   return (
     <>
@@ -47,7 +50,15 @@ export function PromptItem({
           isSelected && "bg-accent",
         )}
       >
-        <div className="font-medium text-sm truncate">{prompt.title}</div>
+        <div className="flex items-center gap-1 min-w-0">
+          <span className="font-medium text-sm truncate">{prompt.title}</span>
+          {variables.length > 0 && (
+            <span className="shrink-0 flex items-center gap-0.5 text-muted-foreground">
+              <Sparkles className="h-3 w-3" />
+              <span className="text-[10px]">{variables.length}</span>
+            </span>
+          )}
+        </div>
         {viewMode === "detail" && preview && (
           <div className="text-xs text-muted-foreground truncate mt-0.5">
             {preview}

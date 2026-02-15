@@ -7,6 +7,7 @@ export interface Prompt {
   filePath: string;
   created: string;
   updated: string;
+  templateValues?: Record<string, string>;
 }
 
 export interface Topic {

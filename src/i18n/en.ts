@@ -66,15 +66,13 @@ export const en = {
     new_prompt: "New Prompt",
     new_topic: "New Topic",
     copy: "Copy",
-    use_template: "Use Template",
     select_topic: "Select Topic",
   },
 
   template: {
-    title: "Fill Template Variables",
+    title: "Template Variables",
     placeholder: "Enter {{name}}...",
-    cancel: "Cancel",
-    copy: "Copy to Clipboard",
+    copy: "Copy with Variables",
   },
 
   editor: {

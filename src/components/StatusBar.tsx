@@ -4,7 +4,6 @@ interface StatusBarProps {
   onNewPrompt: () => void;
   onNewTopic: () => void;
   onCopy: () => void;
-  onTemplate: () => void;
   hasSelection: boolean;
 }
 
@@ -12,7 +11,6 @@ export function StatusBar({
   onNewPrompt,
   onNewTopic,
   onCopy,
-  onTemplate,
   hasSelection,
 }: StatusBarProps) {
   const { t } = useTranslation();
@@ -43,28 +41,16 @@ export function StatusBar({
       </div>
       <div className="flex items-center gap-4">
         {hasSelection && (
-          <>
-            <button
-              type="button"
-              onClick={onCopy}
-              className="hover:text-foreground transition-colors"
-            >
-              {t("status.copy")}{" "}
-              <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px]">
-                ⌘C
-              </kbd>
-            </button>
-            <button
-              type="button"
-              onClick={onTemplate}
-              className="hover:text-foreground transition-colors"
-            >
-              {t("status.use_template")}{" "}
-              <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px]">
-                ⌘T
-              </kbd>
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={onCopy}
+            className="hover:text-foreground transition-colors"
+          >
+            {t("status.copy")}{" "}
+            <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px]">
+              ⌘C
+            </kbd>
+          </button>
         )}
       </div>
     </div>

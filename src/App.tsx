@@ -8,7 +8,6 @@ import { SearchBar } from "@/components/Sidebar/SearchBar";
 import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { SidebarToolbar } from "@/components/Sidebar/SidebarToolbar";
 import { StatusBar } from "@/components/StatusBar";
-import { TemplateModal } from "@/components/TemplateModal";
 import { TopicPanel } from "@/components/TopicPanel/TopicPanel";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +27,6 @@ import { useSearch } from "@/hooks/useSearch";
 import { useSettings } from "@/hooks/useSettings";
 import type { Language } from "@/i18n";
 import { I18nProvider, useTranslation } from "@/i18n/I18nProvider";
-import { extractVariables } from "@/lib/template";
 import { generateTitle } from "@/lib/title-generator";
 import { cn } from "@/lib/utils";
 
@@ -73,7 +71,6 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [editingPrompt, setEditingPrompt] = useState(selectedPrompt);
   const [editorMode, setEditorMode] = useState<"view" | "edit">("view");
   const [copied, setCopied] = useState(false);
-  const [templateOpen, setTemplateOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"simple" | "detail">("detail");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -238,12 +235,6 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     }
   }, [editingPrompt]);
 
-  const handleTemplate = useCallback(() => {
-    if (editingPrompt && extractVariables(editingPrompt.body).length > 0) {
-      setTemplateOpen(true);
-    }
-  }, [editingPrompt]);
-
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -254,14 +245,10 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         e.preventDefault();
         handleNewPrompt();
       }
-      if (e.metaKey && e.key === "t") {
-        e.preventDefault();
-        handleTemplate();
-      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleNewPrompt, handleNewTopicShortcut, handleTemplate]);
+  }, [handleNewPrompt, handleNewTopicShortcut]);
 
   const handleSettingsUpdate = useCallback(
     async (partial: Partial<import("@/types/settings").AppSettings>) => {
@@ -401,18 +388,10 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         onNewPrompt={handleNewPrompt}
         onNewTopic={handleNewTopicShortcut}
         onCopy={handleCopy}
-        onTemplate={handleTemplate}
         hasSelection={!!editingPrompt}
       />
 
       {/* Modals */}
-      {editingPrompt && (
-        <TemplateModal
-          open={templateOpen}
-          onOpenChange={setTemplateOpen}
-          body={editingPrompt.body}
-        />
-      )}
       {settings && (
         <SettingsModal
           open={settingsOpen}

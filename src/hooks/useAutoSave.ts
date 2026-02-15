@@ -16,6 +16,7 @@ export function useAutoSave(
       title: prompt.title,
       body: prompt.body,
       tags: prompt.tags,
+      templateValues: prompt.templateValues,
     });
 
     if (serialized === lastSavedRef.current) return;

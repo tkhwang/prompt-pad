@@ -5,6 +5,7 @@ interface Frontmatter {
   created: string;
   updated: string;
   tags: string[];
+  templateValues?: Record<string, string>;
 }
 
 export function parseMarkdown(
@@ -34,20 +35,31 @@ export function parseMarkdown(
     filePath,
     created: frontmatter.created || now,
     updated: frontmatter.updated || now,
+    templateValues: frontmatter.templateValues,
   };
 }
 
 export function serializeMarkdown(prompt: Prompt): string {
-  const frontmatter = [
+  const lines = [
     "---",
     `title: "${prompt.title}"`,
     `created: ${prompt.created}`,
     `updated: ${prompt.updated}`,
     `tags: [${prompt.tags.map((t) => `"${t}"`).join(", ")}]`,
-    "---",
-  ].join("\n");
+  ];
 
-  return `${frontmatter}\n\n${prompt.body}\n`;
+  if (prompt.templateValues) {
+    const nonEmpty = Object.fromEntries(
+      Object.entries(prompt.templateValues).filter(([, v]) => v !== ""),
+    );
+    if (Object.keys(nonEmpty).length > 0) {
+      lines.push(`templateValues: ${JSON.stringify(nonEmpty)}`);
+    }
+  }
+
+  lines.push("---");
+
+  return `${lines.join("\n")}\n\n${prompt.body}\n`;
 }
 
 function parseYamlSimple(yaml: string): Partial<Frontmatter> {
@@ -59,6 +71,15 @@ function parseYamlSimple(yaml: string): Partial<Frontmatter> {
 
     const key = line.slice(0, colonIdx).trim();
     let value: string | string[] = line.slice(colonIdx + 1).trim();
+
+    if (value.startsWith("{") && value.endsWith("}")) {
+      try {
+        result[key] = JSON.parse(value);
+      } catch {
+        result[key] = value;
+      }
+      continue;
+    }
 
     if (value.startsWith("[") && value.endsWith("]")) {
       result[key] = value
