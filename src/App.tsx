@@ -214,20 +214,30 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   );
 
   const handleNewPrompt = useCallback(() => {
-    if (selectedTopic === null) {
-      if (topics.length === 0) {
-        handleCreatePromptInTopic("General");
-      } else {
-        setSelectTopicDialogOpen(true);
-      }
+    const inferredTopic = selectedTopic ?? editingPrompt?.topic ?? null;
+
+    if (inferredTopic) {
+      handleCreatePromptInTopic(inferredTopic);
       return;
     }
-    handleCreatePromptInTopic(selectedTopic);
-  }, [selectedTopic, topics.length, handleCreatePromptInTopic]);
+
+    if (topics.length === 0) {
+      handleCreatePromptInTopic("General");
+      return;
+    }
+
+    setSelectTopicDialogOpen(true);
+  }, [
+    selectedTopic,
+    editingPrompt?.topic,
+    topics.length,
+    handleCreatePromptInTopic,
+  ]);
 
   const handleSelectTopicAndCreate = useCallback(
     (topicName: string) => {
       setSelectTopicDialogOpen(false);
+      setSelectedTopic(topicName);
       handleCreatePromptInTopic(topicName);
     },
     [handleCreatePromptInTopic],
