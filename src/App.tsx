@@ -286,6 +286,12 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     updateSettings({ onboardingComplete: false });
   }, [updateSettings]);
 
+  const handleTitleEnter = useCallback(() => {
+    if (!editingPrompt) return;
+    shouldFocusBodyRef.current = true;
+    updatePrompt(editingPrompt);
+  }, [editingPrompt, updatePrompt]);
+
   if (settingsLoading) {
     return (
       <div className="flex items-center justify-center h-screen text-muted-foreground">
@@ -376,18 +382,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
               copied={copied}
               titleRef={titleInputRef}
               bodyRef={bodyInputRef}
-              onTitleEnter={() => {
-                shouldFocusBodyRef.current = true;
-                updatePrompt(editingPrompt!);
-                requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    if (shouldFocusBodyRef.current) {
-                      shouldFocusBodyRef.current = false;
-                      bodyInputRef.current?.focus();
-                    }
-                  });
-                });
-              }}
+              onTitleEnter={handleTitleEnter}
             />
           </div>
         </div>
