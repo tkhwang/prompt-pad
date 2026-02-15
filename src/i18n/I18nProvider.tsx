@@ -1,8 +1,11 @@
 import { createContext, useContext } from "react";
-import { translations, DEFAULT_LANGUAGE } from "./index";
 import type { Language, TranslationKey } from "./index";
+import { DEFAULT_LANGUAGE, translations } from "./index";
 
-type TranslationFn = (key: TranslationKey, vars?: Record<string, string>) => string;
+type TranslationFn = (
+  key: TranslationKey,
+  vars?: Record<string, string>,
+) => string;
 
 interface I18nContextValue {
   language: Language;
@@ -11,7 +14,10 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-function resolve(obj: Record<string, unknown>, path: string): string | undefined {
+function resolve(
+  obj: Record<string, unknown>,
+  path: string,
+): string | undefined {
   const parts = path.split(".");
   let current: unknown = obj;
   for (const part of parts) {
@@ -33,7 +39,10 @@ export function I18nProvider({ language, children }: I18nProviderProps) {
       resolve(translations[DEFAULT_LANGUAGE], key) ??
       key;
     if (!vars) return str;
-    return str.replace(/\{\{(\w+)\}\}/g, (_, name) => vars[name] ?? `{{${name}}}`);
+    return str.replace(
+      /\{\{(\w+)\}\}/g,
+      (_, name) => vars[name] ?? `{{${name}}}`,
+    );
   };
 
   return (

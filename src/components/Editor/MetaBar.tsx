@@ -1,7 +1,7 @@
-import { Input } from "@/components/ui/input";
 import type { Ref } from "react";
-import type { Prompt } from "@/types/prompt";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/i18n/I18nProvider";
+import type { Prompt } from "@/types/prompt";
 
 interface MetaBarProps {
   prompt: Prompt;

@@ -115,9 +115,15 @@
 }
 
 /* Font family classes */
-.font-system { --editor-font: ui-sans-serif, system-ui, sans-serif; }
-.font-mono   { --editor-font: ui-monospace, "SF Mono", "Cascadia Code", monospace; }
-.font-serif  { --editor-font: ui-serif, Georgia, Cambria, serif; }
+.font-system {
+  --editor-font: ui-sans-serif, system-ui, sans-serif;
+}
+.font-mono {
+  --editor-font: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+}
+.font-serif {
+  --editor-font: ui-serif, Georgia, Cambria, serif;
+}
 
 @layer base {
   * {

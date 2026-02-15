@@ -1,16 +1,16 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Heading,
   Bold,
+  Code,
+  Heading,
+  Image,
   Italic,
-  Strikethrough,
   Link,
   List,
-  ListOrdered,
   ListChecks,
+  ListOrdered,
   Quote,
-  Code,
-  Image,
+  Strikethrough,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";

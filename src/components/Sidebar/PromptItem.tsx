@@ -1,6 +1,6 @@
+import { useTranslation } from "@/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 import type { Prompt } from "@/types/prompt";
-import { useTranslation } from "@/i18n/I18nProvider";
 
 interface PromptItemProps {
   prompt: Prompt;
@@ -20,6 +20,7 @@ export function PromptItem({
 
   return (
     <button
+      type="button"
       onClick={onClick}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -30,7 +31,7 @@ export function PromptItem({
       className={cn(
         "w-full text-left px-4 py-2.5 border-b transition-colors",
         "hover:bg-accent",
-        isSelected && "bg-accent"
+        isSelected && "bg-accent",
       )}
     >
       <div className="font-medium text-sm truncate">{prompt.title}</div>

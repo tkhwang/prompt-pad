@@ -1,5 +1,5 @@
-import { LazyStore } from "@tauri-apps/plugin-store";
 import { homeDir, join } from "@tauri-apps/api/path";
+import { LazyStore } from "@tauri-apps/plugin-store";
 import type { AppSettings } from "@/types/settings";
 
 const store = new LazyStore("settings.json");
@@ -23,11 +23,19 @@ async function getDefaults(): Promise<AppSettings> {
 
 export async function loadSettings(): Promise<AppSettings> {
   const defaults = await getDefaults();
-  const promptDir = await store.get<string>("promptDir") ?? defaults.promptDir;
-  const colorTheme = await store.get<AppSettings["colorTheme"]>("colorTheme") ?? defaults.colorTheme;
-  const fontFamily = await store.get<AppSettings["fontFamily"]>("fontFamily") ?? defaults.fontFamily;
-  const language = await store.get<AppSettings["language"]>("language") ?? defaults.language;
-  const onboardingComplete = await store.get<boolean>("onboardingComplete") ?? defaults.onboardingComplete;
+  const promptDir =
+    (await store.get<string>("promptDir")) ?? defaults.promptDir;
+  const colorTheme =
+    (await store.get<AppSettings["colorTheme"]>("colorTheme")) ??
+    defaults.colorTheme;
+  const fontFamily =
+    (await store.get<AppSettings["fontFamily"]>("fontFamily")) ??
+    defaults.fontFamily;
+  const language =
+    (await store.get<AppSettings["language"]>("language")) ?? defaults.language;
+  const onboardingComplete =
+    (await store.get<boolean>("onboardingComplete")) ??
+    defaults.onboardingComplete;
   return { promptDir, colorTheme, fontFamily, language, onboardingComplete };
 }
 

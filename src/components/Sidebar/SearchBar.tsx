@@ -1,6 +1,6 @@
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Plus, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/i18n/I18nProvider";
 
 interface SearchBarProps {
@@ -9,7 +9,11 @@ interface SearchBarProps {
   onNewPrompt: () => void;
 }
 
-export function SearchBar({ query, onQueryChange, onNewPrompt }: SearchBarProps) {
+export function SearchBar({
+  query,
+  onQueryChange,
+  onNewPrompt,
+}: SearchBarProps) {
   const { t } = useTranslation();
 
   return (

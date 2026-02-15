@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTranslation } from "@/i18n/I18nProvider";
 import type { Prompt } from "@/types/prompt";
 import { SearchBar } from "./SearchBar";
 import { TopicGroup } from "./TopicGroup";
-import { useTranslation } from "@/i18n/I18nProvider";
 
 interface SidebarProps {
   prompts: Prompt[];
@@ -31,7 +31,7 @@ export function Sidebar({
     for (const prompt of prompts) {
       const topic = prompt.topic || "General";
       if (!map.has(topic)) map.set(topic, []);
-      map.get(topic)!.push(prompt);
+      map.get(topic)?.push(prompt);
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [prompts]);

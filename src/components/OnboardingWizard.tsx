@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
+import { FolderOpen, Globe, Monitor, Moon, Sun, Type } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FolderOpen, Sun, Moon, Monitor, Type, Globe } from "lucide-react";
-import { useTranslation } from "@/i18n/I18nProvider";
-import { LANGUAGE_OPTIONS } from "@/i18n";
 import type { Language } from "@/i18n";
+import { LANGUAGE_OPTIONS } from "@/i18n";
+import { useTranslation } from "@/i18n/I18nProvider";
 import type { AppSettings, ColorTheme, FontFamily } from "@/types/settings";
 
 interface OnboardingWizardProps {
@@ -15,7 +15,11 @@ interface OnboardingWizardProps {
 
 const STEP_COUNT = 4;
 
-export function OnboardingWizard({ defaultSettings, onComplete, onLanguageChange }: OnboardingWizardProps) {
+export function OnboardingWizard({
+  defaultSettings,
+  onComplete,
+  onLanguageChange,
+}: OnboardingWizardProps) {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
@@ -45,14 +49,21 @@ export function OnboardingWizard({ defaultSettings, onComplete, onLanguageChange
       <div className="w-full max-w-lg p-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2">{t("onboarding.welcome_title")}</h1>
-          <p className="text-muted-foreground">{t("onboarding.welcome_subtitle")}</p>
-          <p className="text-sm text-muted-foreground/70">{t("onboarding.welcome_hint")}</p>
+          <h1 className="text-2xl font-bold mb-2">
+            {t("onboarding.welcome_title")}
+          </h1>
+          <p className="text-muted-foreground">
+            {t("onboarding.welcome_subtitle")}
+          </p>
+          <p className="text-sm text-muted-foreground/70">
+            {t("onboarding.welcome_hint")}
+          </p>
         </div>
 
         {/* Step indicator */}
         <div className="flex justify-center gap-2 mb-8">
           {Array.from({ length: STEP_COUNT }, (_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: static step indicators never reorder
             <div key={i} className="flex items-center gap-2">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
@@ -66,7 +77,9 @@ export function OnboardingWizard({ defaultSettings, onComplete, onLanguageChange
                 {i + 1}
               </div>
               {i < STEP_COUNT - 1 && (
-                <div className={`w-8 h-px ${i < step ? "bg-primary" : "bg-border"}`} />
+                <div
+                  className={`w-8 h-px ${i < step ? "bg-primary" : "bg-border"}`}
+                />
               )}
             </div>
           ))}
@@ -76,13 +89,16 @@ export function OnboardingWizard({ defaultSettings, onComplete, onLanguageChange
         <div className="min-h-[200px]">
           {step === 0 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">{t("onboarding.language_title")}</h2>
+              <h2 className="text-lg font-semibold">
+                {t("onboarding.language_title")}
+              </h2>
               <p className="text-sm text-muted-foreground">
                 {t("onboarding.language_description")}
               </p>
               <div className="grid grid-cols-2 gap-3">
                 {LANGUAGE_OPTIONS.map(({ value, label }) => (
                   <button
+                    type="button"
                     key={value}
                     onClick={() => handleLanguageSelect(value)}
                     className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors ${
@@ -101,7 +117,9 @@ export function OnboardingWizard({ defaultSettings, onComplete, onLanguageChange
 
           {step === 1 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">{t("onboarding.folder_title")}</h2>
+              <h2 className="text-lg font-semibold">
+                {t("onboarding.folder_title")}
+              </h2>
               <p className="text-sm text-muted-foreground">
                 {t("onboarding.folder_description")}
               </p>
@@ -119,19 +137,36 @@ export function OnboardingWizard({ defaultSettings, onComplete, onLanguageChange
 
           {step === 2 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">{t("onboarding.theme_title")}</h2>
+              <h2 className="text-lg font-semibold">
+                {t("onboarding.theme_title")}
+              </h2>
               <p className="text-sm text-muted-foreground">
                 {t("onboarding.theme_description")}
               </p>
               <div className="grid grid-cols-3 gap-3">
-                {([
-                  { value: "light" as ColorTheme, labelKey: "theme.light" as const, icon: Sun },
-                  { value: "dark" as ColorTheme, labelKey: "theme.dark" as const, icon: Moon },
-                  { value: "system" as ColorTheme, labelKey: "theme.system" as const, icon: Monitor },
-                ]).map(({ value, labelKey, icon: Icon }) => (
+                {[
+                  {
+                    value: "light" as ColorTheme,
+                    labelKey: "theme.light" as const,
+                    icon: Sun,
+                  },
+                  {
+                    value: "dark" as ColorTheme,
+                    labelKey: "theme.dark" as const,
+                    icon: Moon,
+                  },
+                  {
+                    value: "system" as ColorTheme,
+                    labelKey: "theme.system" as const,
+                    icon: Monitor,
+                  },
+                ].map(({ value, labelKey, icon: Icon }) => (
                   <button
+                    type="button"
                     key={value}
-                    onClick={() => setSettings((s) => ({ ...s, colorTheme: value }))}
+                    onClick={() =>
+                      setSettings((s) => ({ ...s, colorTheme: value }))
+                    }
                     className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors ${
                       settings.colorTheme === value
                         ? "border-primary bg-primary/5"
@@ -148,19 +183,36 @@ export function OnboardingWizard({ defaultSettings, onComplete, onLanguageChange
 
           {step === 3 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">{t("onboarding.font_title")}</h2>
+              <h2 className="text-lg font-semibold">
+                {t("onboarding.font_title")}
+              </h2>
               <p className="text-sm text-muted-foreground">
                 {t("onboarding.font_description")}
               </p>
               <div className="grid grid-cols-3 gap-3">
-                {([
-                  { value: "system" as FontFamily, labelKey: "font.system" as const, sample: "ui-sans-serif, system-ui, sans-serif" },
-                  { value: "mono" as FontFamily, labelKey: "font.mono" as const, sample: "ui-monospace, 'SF Mono', monospace" },
-                  { value: "serif" as FontFamily, labelKey: "font.serif" as const, sample: "ui-serif, Georgia, serif" },
-                ]).map(({ value, labelKey, sample }) => (
+                {[
+                  {
+                    value: "system" as FontFamily,
+                    labelKey: "font.system" as const,
+                    sample: "ui-sans-serif, system-ui, sans-serif",
+                  },
+                  {
+                    value: "mono" as FontFamily,
+                    labelKey: "font.mono" as const,
+                    sample: "ui-monospace, 'SF Mono', monospace",
+                  },
+                  {
+                    value: "serif" as FontFamily,
+                    labelKey: "font.serif" as const,
+                    sample: "ui-serif, Georgia, serif",
+                  },
+                ].map(({ value, labelKey, sample }) => (
                   <button
+                    type="button"
                     key={value}
-                    onClick={() => setSettings((s) => ({ ...s, fontFamily: value }))}
+                    onClick={() =>
+                      setSettings((s) => ({ ...s, fontFamily: value }))
+                    }
                     className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors ${
                       settings.fontFamily === value
                         ? "border-primary bg-primary/5"
@@ -169,7 +221,10 @@ export function OnboardingWizard({ defaultSettings, onComplete, onLanguageChange
                   >
                     <Type className="h-6 w-6" />
                     <span className="text-sm font-medium">{t(labelKey)}</span>
-                    <span className="text-xs text-muted-foreground" style={{ fontFamily: sample }}>
+                    <span
+                      className="text-xs text-muted-foreground"
+                      style={{ fontFamily: sample }}
+                    >
                       {t("onboarding.font_sample")}
                     </span>
                   </button>
@@ -189,7 +244,9 @@ export function OnboardingWizard({ defaultSettings, onComplete, onLanguageChange
             {t("onboarding.back")}
           </Button>
           {step < STEP_COUNT - 1 ? (
-            <Button onClick={() => setStep((s) => s + 1)}>{t("onboarding.next")}</Button>
+            <Button onClick={() => setStep((s) => s + 1)}>
+              {t("onboarding.next")}
+            </Button>
           ) : (
             <Button onClick={handleFinish}>{t("onboarding.finish")}</Button>
           )}

@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback } from "react";
-import type { Prompt, Topic } from "@/types/prompt";
+import { join } from "@tauri-apps/api/path";
+import { useCallback, useEffect, useState } from "react";
 import {
+  deletePromptFile,
   ensureDir,
-  listTopicDirs,
   listMarkdownFiles,
+  listTopicDirs,
   readPromptFile,
   writePromptFile,
-  deletePromptFile,
 } from "@/lib/fs";
 import {
   parseMarkdown,
   serializeMarkdown,
   titleToFileName,
 } from "@/lib/markdown";
-import { join } from "@tauri-apps/api/path";
+import type { Prompt, Topic } from "@/types/prompt";
 
 export function usePrompts(promptDir: string) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -97,9 +97,7 @@ export function usePrompts(promptDir: string) {
         const existing = prev.find((t) => t.name === topicName);
         if (existing) {
           return prev.map((t) =>
-            t.name === topicName
-              ? { ...t, promptCount: t.promptCount + 1 }
-              : t
+            t.name === topicName ? { ...t, promptCount: t.promptCount + 1 } : t,
           );
         }
         return [...prev, { name: topicName, path: topicPath, promptCount: 1 }];
@@ -108,24 +106,21 @@ export function usePrompts(promptDir: string) {
 
       return prompt;
     },
-    [promptDir]
+    [promptDir],
   );
 
-  const updatePrompt = useCallback(
-    async (updated: Prompt) => {
-      const withTimestamp = {
-        ...updated,
-        updated: new Date().toISOString(),
-      };
-      const content = serializeMarkdown(withTimestamp);
-      await writePromptFile(updated.filePath, content);
+  const updatePrompt = useCallback(async (updated: Prompt) => {
+    const withTimestamp = {
+      ...updated,
+      updated: new Date().toISOString(),
+    };
+    const content = serializeMarkdown(withTimestamp);
+    await writePromptFile(updated.filePath, content);
 
-      setPrompts((prev) =>
-        prev.map((p) => (p.id === updated.id ? withTimestamp : p))
-      );
-    },
-    []
-  );
+    setPrompts((prev) =>
+      prev.map((p) => (p.id === updated.id ? withTimestamp : p)),
+    );
+  }, []);
 
   const deletePrompt = useCallback(
     async (promptId: string) => {
@@ -139,8 +134,8 @@ export function usePrompts(promptDir: string) {
         prev.map((t) =>
           t.name === prompt.topic
             ? { ...t, promptCount: t.promptCount - 1 }
-            : t
-        )
+            : t,
+        ),
       );
 
       if (selectedId === promptId) {
@@ -148,7 +143,7 @@ export function usePrompts(promptDir: string) {
         setSelectedId(remaining.length > 0 ? remaining[0].id : null);
       }
     },
-    [prompts, selectedId]
+    [prompts, selectedId],
   );
 
   return {

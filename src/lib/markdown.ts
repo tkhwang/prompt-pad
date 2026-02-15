@@ -10,7 +10,7 @@ interface Frontmatter {
 export function parseMarkdown(
   content: string,
   filePath: string,
-  topic: string
+  topic: string,
 ): Prompt {
   const frontmatterRegex = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
   const match = content.match(frontmatterRegex);
@@ -85,12 +85,10 @@ function fileNameToTitle(filePath: string): string {
 }
 
 export function titleToFileName(title: string): string {
-  return (
-    title
-      .toLowerCase()
-      .replace(/[^a-z0-9가-힣\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "") + ".md"
-  );
+  return `${title
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")}.md`;
 }

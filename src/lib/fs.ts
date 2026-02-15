@@ -1,11 +1,11 @@
 import {
+  exists,
+  mkdir,
   readDir,
   readTextFile,
-  writeTextFile,
-  mkdir,
-  exists,
   remove,
   rename,
+  writeTextFile,
 } from "@tauri-apps/plugin-fs";
 
 export async function ensureDir(path: string): Promise<void> {
@@ -35,7 +35,10 @@ export async function readPromptFile(filePath: string): Promise<string> {
   return await readTextFile(filePath);
 }
 
-export async function writePromptFile(filePath: string, content: string): Promise<void> {
+export async function writePromptFile(
+  filePath: string,
+  content: string,
+): Promise<void> {
   await writeTextFile(filePath, content);
 }
 
@@ -43,6 +46,9 @@ export async function deletePromptFile(filePath: string): Promise<void> {
   await remove(filePath);
 }
 
-export async function renameEntry(oldPath: string, newPath: string): Promise<void> {
+export async function renameEntry(
+  oldPath: string,
+  newPath: string,
+): Promise<void> {
   await rename(oldPath, newPath);
 }

@@ -1,5 +1,5 @@
-import type { Prompt } from "@/types/prompt";
 import { useTranslation } from "@/i18n/I18nProvider";
+import type { Prompt } from "@/types/prompt";
 
 interface PromptEditorProps {
   prompt: Prompt;

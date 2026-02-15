@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
-import type { AppSettings, ColorTheme, FontFamily } from "@/types/settings";
+import { useCallback, useEffect, useState } from "react";
 import { loadSettings, saveSettings } from "@/lib/store";
+import type { AppSettings, ColorTheme, FontFamily } from "@/types/settings";
 
 function applyTheme(theme: ColorTheme) {
   const root = document.documentElement;
   if (theme === "system") {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     root.classList.toggle("dark", prefersDark);
   } else {
     root.classList.toggle("dark", theme === "dark");
@@ -41,7 +43,7 @@ export function useSettings() {
     };
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
-  }, [settings?.colorTheme]);
+  }, [settings]);
 
   const updateSettings = useCallback(
     async (partial: Partial<AppSettings>) => {
@@ -52,19 +54,16 @@ export function useSettings() {
       if (partial.fontFamily) applyFont(partial.fontFamily);
       await saveSettings(next);
     },
-    [settings]
+    [settings],
   );
 
-  const completeOnboarding = useCallback(
-    async (finalSettings: AppSettings) => {
-      const completed = { ...finalSettings, onboardingComplete: true };
-      setSettings(completed);
-      applyTheme(completed.colorTheme);
-      applyFont(completed.fontFamily);
-      await saveSettings(completed);
-    },
-    []
-  );
+  const completeOnboarding = useCallback(async (finalSettings: AppSettings) => {
+    const completed = { ...finalSettings, onboardingComplete: true };
+    setSettings(completed);
+    applyTheme(completed.colorTheme);
+    applyFont(completed.fontFamily);
+    await saveSettings(completed);
+  }, []);
 
   return { settings, loading, updateSettings, completeOnboarding };
 }

@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { extractVariables, substituteVariables } from "@/lib/template";
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { useTranslation } from "@/i18n/I18nProvider";
+import { extractVariables, substituteVariables } from "@/lib/template";
 
 interface TemplateModalProps {
   open: boolean;
@@ -18,7 +18,11 @@ interface TemplateModalProps {
   body: string;
 }
 
-export function TemplateModal({ open, onOpenChange, body }: TemplateModalProps) {
+export function TemplateModal({
+  open,
+  onOpenChange,
+  body,
+}: TemplateModalProps) {
   const { t } = useTranslation();
   const variables = extractVariables(body);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -31,7 +35,7 @@ export function TemplateModal({ open, onOpenChange, body }: TemplateModalProps) 
       }
       setValues(initial);
     }
-  }, [open]);
+  }, [open, variables]);
 
   const handleCopy = async () => {
     const result = substituteVariables(body, values);
@@ -50,8 +54,14 @@ export function TemplateModal({ open, onOpenChange, body }: TemplateModalProps) 
         <div className="space-y-3">
           {variables.map((variable) => (
             <div key={variable} className="space-y-1">
-              <label className="text-sm font-medium">{`{{${variable}}}`}</label>
+              <label
+                htmlFor={`var-${variable}`}
+                className="text-sm font-medium"
+              >
+                {`{{${variable}}}`}
+              </label>
               <Input
+                id={`var-${variable}`}
                 value={values[variable] || ""}
                 onChange={(e) =>
                   setValues((prev) => ({ ...prev, [variable]: e.target.value }))

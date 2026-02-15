@@ -84,7 +84,8 @@ export const ko: DeepStringify<typeof en> = {
   editor: {
     empty: "프롬프트를 선택하거나 새로 만드세요",
     placeholder_title: "프롬프트 제목...",
-    placeholder_body: "여기에 프롬프트를 작성하세요... {{variable_name}} 형식으로 템플릿 변수를 사용할 수 있습니다.",
+    placeholder_body:
+      "여기에 프롬프트를 작성하세요... {{variable_name}} 형식으로 템플릿 변수를 사용할 수 있습니다.",
   },
 
   sidebar: {

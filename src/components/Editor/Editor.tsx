@@ -1,9 +1,9 @@
 import type { Ref } from "react";
-import type { Prompt } from "@/types/prompt";
-import { MetaBar } from "./MetaBar";
-import { MarkdownToolbar } from "./MarkdownToolbar";
-import { PromptEditor } from "./PromptEditor";
 import { useTranslation } from "@/i18n/I18nProvider";
+import type { Prompt } from "@/types/prompt";
+import { MarkdownToolbar } from "./MarkdownToolbar";
+import { MetaBar } from "./MetaBar";
+import { PromptEditor } from "./PromptEditor";
 
 interface EditorProps {
   prompt: Prompt | null;

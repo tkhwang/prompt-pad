@@ -4,7 +4,7 @@ import type { Prompt } from "@/types/prompt";
 export function useAutoSave(
   prompt: Prompt | null,
   onSave: (prompt: Prompt) => Promise<void>,
-  delay: number = 500
+  delay: number = 500,
 ) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef<string>("");

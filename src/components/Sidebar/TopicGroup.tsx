@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { ChevronRight } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Prompt } from "@/types/prompt";
 import { PromptItem } from "./PromptItem";
@@ -24,13 +24,14 @@ export function TopicGroup({
   return (
     <div>
       <button
+        type="button"
         onClick={() => setCollapsed(!collapsed)}
         className="flex items-center gap-1 w-full px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
       >
         <ChevronRight
           className={cn(
             "h-3.5 w-3.5 transition-transform",
-            !collapsed && "rotate-90"
+            !collapsed && "rotate-90",
           )}
         />
         <span>{name}</span>

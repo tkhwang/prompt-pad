@@ -37,7 +37,8 @@ export const en = {
     prompt_dir_label: "Prompt Storage Directory",
     prompt_dir_browse: "Browse",
     prompt_dir_apply: "Apply Directory Change",
-    prompt_dir_description: "Prompts are stored as Markdown files in this directory.",
+    prompt_dir_description:
+      "Prompts are stored as Markdown files in this directory.",
     theme_label: "Theme",
     font_label: "Editor Font",
     language_label: "Language",
@@ -78,7 +79,8 @@ export const en = {
   editor: {
     empty: "Select a prompt or create a new one",
     placeholder_title: "Prompt title...",
-    placeholder_body: "Write your prompt here... Use {{variable_name}} for template variables.",
+    placeholder_body:
+      "Write your prompt here... Use {{variable_name}} for template variables.",
   },
 
   sidebar: {

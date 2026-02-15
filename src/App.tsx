@@ -1,21 +1,20 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import { Sidebar } from "@/components/Sidebar/Sidebar";
-import { Editor } from "@/components/Editor/Editor";
-import { StatusBar } from "@/components/StatusBar";
-import { TemplateModal } from "@/components/TemplateModal";
-import { SettingsModal } from "@/components/SettingsModal";
-import { OnboardingWizard } from "@/components/OnboardingWizard";
-import { I18nProvider } from "@/i18n/I18nProvider";
-import { useTranslation } from "@/i18n/I18nProvider";
-import { usePrompts } from "@/hooks/usePrompts";
-import { useSearch } from "@/hooks/useSearch";
-import { useAutoSave } from "@/hooks/useAutoSave";
-import { useSettings } from "@/hooks/useSettings";
-import { extractVariables } from "@/lib/template";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { Settings } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Editor } from "@/components/Editor/Editor";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { SettingsModal } from "@/components/SettingsModal";
+import { Sidebar } from "@/components/Sidebar/Sidebar";
+import { StatusBar } from "@/components/StatusBar";
+import { TemplateModal } from "@/components/TemplateModal";
 import { Button } from "@/components/ui/button";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { usePrompts } from "@/hooks/usePrompts";
+import { useSearch } from "@/hooks/useSearch";
+import { useSettings } from "@/hooks/useSettings";
 import type { Language } from "@/i18n";
+import { I18nProvider, useTranslation } from "@/i18n/I18nProvider";
+import { extractVariables } from "@/lib/template";
 
 interface AppContentProps {
   onLanguageOverride: (language: Language) => void;
