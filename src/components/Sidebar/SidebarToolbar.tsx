@@ -17,16 +17,16 @@ export function SidebarToolbar({
 
   return (
     <div className="flex items-center gap-2 px-3 py-3 border-b">
+      <Button variant="outline" className="flex-1" onClick={onNewPrompt}>
+        <Plus className="h-4 w-4" />
+        {t("sidebar.new_prompt")}
+      </Button>
       <Button variant="ghost" size="icon" onClick={onViewModeToggle}>
         {viewMode === "simple" ? (
           <List className="h-4 w-4" />
         ) : (
           <LayoutList className="h-4 w-4" />
         )}
-      </Button>
-      <Button variant="outline" className="flex-1" onClick={onNewPrompt}>
-        <Plus className="h-4 w-4" />
-        {t("sidebar.new_prompt")}
       </Button>
     </div>
   );

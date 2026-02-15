@@ -1,9 +1,7 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { Check, Copy, Eye, Pencil } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { Editor } from "@/components/Editor/Editor";
-import { MetaBar } from "@/components/Editor/MetaBar";
+import { EditorPanel } from "@/components/Editor/EditorPanel";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { SettingsModal } from "@/components/SettingsModal";
 import { SearchBar } from "@/components/Sidebar/SearchBar";
@@ -371,91 +369,29 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
               />
             </div>
 
-            {/* Col 3: Mode toggle + Editor/View + Copy */}
-            <div className="flex flex-1 flex-col overflow-hidden">
-              {editingPrompt ? (
-                <>
-                  {/* Mode toggle bar */}
-                  <div className="flex items-center justify-end px-4 py-2 border-b">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setEditorMode((m) => (m === "view" ? "edit" : "view"))
-                      }
-                    >
-                      {editorMode === "view" ? (
-                        <Pencil className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                      {editorMode === "view"
-                        ? t("editor.edit")
-                        : t("editor.view")}
-                    </Button>
-                  </div>
-
-                  {editorMode === "edit" ? (
-                    <>
-                      <MetaBar
-                        prompt={editingPrompt}
-                        onUpdate={setEditingPrompt}
-                        titleRef={titleInputRef}
-                        onEnter={() => {
-                          shouldFocusBodyRef.current = true;
-                          updatePrompt(editingPrompt);
-                          requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                              if (shouldFocusBodyRef.current) {
-                                shouldFocusBodyRef.current = false;
-                                bodyInputRef.current?.focus();
-                              }
-                            });
-                          });
-                        }}
-                      />
-                      <Editor
-                        prompt={editingPrompt}
-                        onUpdate={setEditingPrompt}
-                        bodyRef={bodyInputRef}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <div className="px-4 py-3 border-b">
-                        <h2 className="text-lg font-semibold">
-                          {editingPrompt.title}
-                        </h2>
-                      </div>
-                      <ScrollArea className="flex-1 p-4">
-                        <pre
-                          className="whitespace-pre-wrap text-sm leading-relaxed"
-                          style={{ fontFamily: "var(--editor-font)" }}
-                        >
-                          {editingPrompt.body}
-                        </pre>
-                      </ScrollArea>
-                    </>
-                  )}
-
-                  {/* Bottom Copy button */}
-                  <div className="px-4 py-3 border-t">
-                    <Button className="w-full" onClick={handleCopy}>
-                      {copied ? (
-                        <Check className="h-4 w-4" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                      {copied ? t("editor.copied") : t("editor.copy")}
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                  {t("editor.empty")}
-                </div>
-              )}
-            </div>
+            {/* Col 3: Title + Mode toggle + Editor/View + Copy */}
+            <EditorPanel
+              prompt={editingPrompt}
+              editorMode={editorMode}
+              onEditorModeChange={setEditorMode}
+              onUpdate={setEditingPrompt}
+              onCopy={handleCopy}
+              copied={copied}
+              titleRef={titleInputRef}
+              bodyRef={bodyInputRef}
+              onTitleEnter={() => {
+                shouldFocusBodyRef.current = true;
+                updatePrompt(editingPrompt!);
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    if (shouldFocusBodyRef.current) {
+                      shouldFocusBodyRef.current = false;
+                      bodyInputRef.current?.focus();
+                    }
+                  });
+                });
+              }}
+            />
           </div>
         </div>
       </div>
