@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   deletePromptFile,
   ensureDir,
+  fileExists,
   listMarkdownFiles,
   listTopicDirs,
   readPromptFile,
@@ -74,13 +75,24 @@ export function usePrompts(promptDir: string) {
       const topicPath = await join(promptDir, topicName);
       await ensureDir(topicPath);
 
-      const fileName = titleToFileName(title);
-      const filePath = await join(topicPath, fileName);
+      const baseName = titleToFileName(title).replace(/\.md$/, "");
+      let fileName = `${baseName}.md`;
+      let filePath = await join(topicPath, fileName);
+      let finalTitle = title;
+      let counter = 1;
+
+      while (await fileExists(filePath)) {
+        fileName = `${baseName}-${counter}.md`;
+        filePath = await join(topicPath, fileName);
+        finalTitle = `${title} (${counter})`;
+        counter++;
+      }
+
       const now = new Date().toISOString();
 
       const prompt: Prompt = {
         id: filePath,
-        title,
+        title: finalTitle,
         body: "",
         topic: topicName,
         tags: [],

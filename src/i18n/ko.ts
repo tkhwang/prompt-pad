@@ -95,5 +95,8 @@ export const ko: DeepStringify<typeof en> = {
 
   prompt: {
     delete_confirm: '"{{title}}"을(를) 삭제할까요?',
+    delete_description: "이 작업은 되돌릴 수 없습니다.",
+    delete_cancel: "취소",
+    delete_action: "삭제",
   },
 };

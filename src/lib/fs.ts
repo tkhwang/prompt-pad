@@ -46,6 +46,10 @@ export async function deletePromptFile(filePath: string): Promise<void> {
   await remove(filePath);
 }
 
+export async function fileExists(path: string): Promise<boolean> {
+  return await exists(path);
+}
+
 export async function renameEntry(
   oldPath: string,
   newPath: string,

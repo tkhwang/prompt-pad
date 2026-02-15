@@ -90,5 +90,8 @@ export const en = {
 
   prompt: {
     delete_confirm: 'Delete "{{title}}"?',
+    delete_description: "This action cannot be undone.",
+    delete_cancel: "Cancel",
+    delete_action: "Delete",
   },
 } as const;
