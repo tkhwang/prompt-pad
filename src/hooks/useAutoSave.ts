@@ -11,6 +11,7 @@ export function useAutoSave(
   const latestPromptRef = useRef<Prompt | null>(null);
   const latestSerializedRef = useRef<string>("");
   const onSaveRef = useRef(onSave);
+  const prevCreatedRef = useRef<string | null>(null);
 
   useEffect(() => {
     onSaveRef.current = onSave;
@@ -34,6 +35,7 @@ export function useAutoSave(
     latestPromptRef.current = prompt;
     if (!prompt) {
       latestSerializedRef.current = "";
+      prevCreatedRef.current = null;
       return;
     }
 
@@ -45,6 +47,13 @@ export function useAutoSave(
     });
     latestSerializedRef.current = serialized;
 
+    // On prompt switch, initialize lastSavedRef to skip unnecessary save
+    if (prompt.created !== prevCreatedRef.current) {
+      prevCreatedRef.current = prompt.created;
+      lastSavedRef.current = serialized;
+      return;
+    }
+
     if (serialized === lastSavedRef.current) return;
 
     if (timeoutRef.current) {
@@ -53,8 +62,12 @@ export function useAutoSave(
     }
 
     timeoutRef.current = setTimeout(async () => {
-      await onSaveRef.current(prompt);
-      lastSavedRef.current = serialized;
+      const currentPrompt = latestPromptRef.current;
+      const currentSerialized = latestSerializedRef.current;
+      if (!currentPrompt || currentSerialized === lastSavedRef.current) return;
+
+      await onSaveRef.current(currentPrompt);
+      lastSavedRef.current = currentSerialized;
       timeoutRef.current = null;
     }, delay);
 

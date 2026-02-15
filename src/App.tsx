@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PROMPT_FILE_TITLE_AUTO_SAVE_DELAY_MS } from "@/consts";
+import { AUTO_SAVE_DELAY_MS } from "@/consts";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { usePrompts } from "@/hooks/usePrompts";
 import { useSearch } from "@/hooks/useSearch";
@@ -102,13 +102,6 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     setTopicPanelOpen(true);
   }, []);
 
-  const handleCreateTopic = useCallback(
-    (name: string) => {
-      createTopic(name);
-    },
-    [createTopic],
-  );
-
   const handleNewTopicShortcut = useCallback(() => {
     setTopicNameInput("");
     setCreateTopicDialogOpen(true);
@@ -176,7 +169,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const flushAutoSave = useAutoSave(
     editingPrompt,
     updatePrompt,
-    PROMPT_FILE_TITLE_AUTO_SAVE_DELAY_MS,
+    AUTO_SAVE_DELAY_MS,
   );
 
   const handleSelectPrompt = useCallback(
@@ -334,7 +327,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
             totalPromptCount={filtered.length}
             selectedTopic={panelDisplayTopic}
             onSelectTopic={handlePanelSelectTopic}
-            onCreateTopic={handleCreateTopic}
+            onCreateTopic={createTopic}
             onRenameTopic={handleRenameTopic}
             onDeleteTopic={handleDeleteTopic}
           />

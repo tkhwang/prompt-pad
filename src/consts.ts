@@ -1,1 +1,1 @@
-export const PROMPT_FILE_TITLE_AUTO_SAVE_DELAY_MS = 800;
+export const AUTO_SAVE_DELAY_MS = 800;

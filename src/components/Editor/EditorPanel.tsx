@@ -104,13 +104,9 @@ export function EditorPanel({
   const hasVariables = variables.length > 0;
   const isCopied = hasVariables ? templateCopied : copied;
   const handleCopy = hasVariables ? handleCopyWithVariables : onCopy;
-  const copyLabel = hasVariables
-    ? isCopied
-      ? t("editor.copied")
-      : t("template.copy")
-    : isCopied
-      ? t("editor.copied")
-      : t("editor.copy");
+  const copyLabel = isCopied
+    ? t("editor.copied")
+    : t(hasVariables ? "template.copy" : "editor.copy");
 
   const toggleMode = () =>
     onEditorModeChange(editorMode === "view" ? "edit" : "view");
