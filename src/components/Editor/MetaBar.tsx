@@ -7,9 +7,10 @@ interface MetaBarProps {
   prompt: Prompt;
   onUpdate: (updated: Prompt) => void;
   titleRef?: Ref<HTMLInputElement>;
+  onEnter?: () => void;
 }
 
-export function MetaBar({ prompt, onUpdate, titleRef }: MetaBarProps) {
+export function MetaBar({ prompt, onUpdate, titleRef, onEnter }: MetaBarProps) {
   const { t } = useTranslation();
 
   return (
@@ -18,6 +19,12 @@ export function MetaBar({ prompt, onUpdate, titleRef }: MetaBarProps) {
         ref={titleRef}
         value={prompt.title}
         onChange={(e) => onUpdate({ ...prompt, title: e.target.value })}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            onEnter?.();
+          }
+        }}
         className="text-lg font-semibold border-none px-0 focus-visible:ring-0"
         placeholder={t("editor.placeholder_title")}
       />

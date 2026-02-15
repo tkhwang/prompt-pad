@@ -53,21 +53,27 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const bodyInputRef = useRef<HTMLTextAreaElement>(null);
+  const shouldFocusTitle = useRef(false);
 
   useEffect(() => {
     setEditingPrompt(selectedPrompt);
   }, [selectedPrompt]);
 
+  useEffect(() => {
+    if (shouldFocusTitle.current && editingPrompt) {
+      shouldFocusTitle.current = false;
+      titleInputRef.current?.focus();
+      titleInputRef.current?.select();
+    }
+  }, [editingPrompt]);
+
   useAutoSave(editingPrompt, updatePrompt);
 
   const handleNewPrompt = useCallback(async () => {
     try {
+      shouldFocusTitle.current = true;
       await createPrompt(t("new_prompt.untitled"), "General");
-      // Focus title input after React re-render
-      requestAnimationFrame(() => {
-        titleInputRef.current?.focus();
-        titleInputRef.current?.select();
-      });
     } catch (err) {
       console.error("Failed to create prompt:", err);
     }
@@ -179,6 +185,8 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
           prompt={editingPrompt}
           onUpdate={setEditingPrompt}
           titleRef={titleInputRef}
+          bodyRef={bodyInputRef}
+          onTitleEnter={() => bodyInputRef.current?.focus()}
         />
       </div>
 
