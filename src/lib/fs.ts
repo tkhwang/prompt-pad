@@ -7,14 +7,6 @@ import {
   remove,
   rename,
 } from "@tauri-apps/plugin-fs";
-import { homeDir, join } from "@tauri-apps/api/path";
-
-const DEFAULT_DIR_NAME = "PromptPad";
-
-export async function getDefaultPromptDir(): Promise<string> {
-  const home = await homeDir();
-  return await join(home, DEFAULT_DIR_NAME);
-}
 
 export async function ensureDir(path: string): Promise<void> {
   if (!(await exists(path))) {

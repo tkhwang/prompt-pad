@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Prompt, Topic } from "@/types/prompt";
 import {
-  getDefaultPromptDir,
   ensureDir,
   listTopicDirs,
   listMarkdownFiles,
@@ -16,20 +15,19 @@ import {
 } from "@/lib/markdown";
 import { join } from "@tauri-apps/api/path";
 
-export function usePrompts() {
+export function usePrompts(promptDir: string) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [rootDir, setRootDir] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   const selectedPrompt = prompts.find((p) => p.id === selectedId) || null;
 
   const loadPrompts = useCallback(async () => {
+    if (!promptDir) return;
     try {
       setLoading(true);
-      const dir = await getDefaultPromptDir();
-      setRootDir(dir);
+      const dir = promptDir;
       await ensureDir(dir);
 
       const topicNames = await listTopicDirs(dir);
@@ -65,15 +63,15 @@ export function usePrompts() {
     } finally {
       setLoading(false);
     }
-  }, [selectedId]);
+  }, [promptDir, selectedId]);
 
   useEffect(() => {
     loadPrompts();
-  }, []);
+  }, [loadPrompts]);
 
   const createPrompt = useCallback(
     async (title: string, topicName: string) => {
-      const topicPath = await join(rootDir, topicName);
+      const topicPath = await join(promptDir, topicName);
       await ensureDir(topicPath);
 
       const fileName = titleToFileName(title);
@@ -110,7 +108,7 @@ export function usePrompts() {
 
       return prompt;
     },
-    [rootDir]
+    [promptDir]
   );
 
   const updatePrompt = useCallback(
@@ -159,7 +157,6 @@ export function usePrompts() {
     selectedPrompt,
     selectedId,
     loading,
-    rootDir,
     setSelectedId,
     loadPrompts,
     createPrompt,

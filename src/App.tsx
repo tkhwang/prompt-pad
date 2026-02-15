@@ -4,9 +4,11 @@ import { Editor } from "@/components/Editor/Editor";
 import { StatusBar } from "@/components/StatusBar";
 import { TemplateModal } from "@/components/TemplateModal";
 import { SettingsModal } from "@/components/SettingsModal";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { usePrompts } from "@/hooks/usePrompts";
 import { useSearch } from "@/hooks/useSearch";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { useSettings } from "@/hooks/useSettings";
 import { extractVariables } from "@/lib/template";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { Settings } from "lucide-react";
@@ -21,19 +23,20 @@ import {
 import { Input } from "@/components/ui/input";
 
 function App() {
+  const { settings, loading: settingsLoading, updateSettings, completeOnboarding } = useSettings();
+
   const {
     prompts,
     topics,
     selectedPrompt,
     selectedId,
     loading,
-    rootDir,
     setSelectedId,
     loadPrompts,
     createPrompt,
     updatePrompt,
     deletePrompt,
-  } = usePrompts();
+  } = usePrompts(settings?.promptDir ?? "");
 
   const { query, setQuery, filtered } = useSearch(prompts);
   const [editingPrompt, setEditingPrompt] = useState(selectedPrompt);
@@ -57,9 +60,14 @@ function App() {
   }, []);
 
   const handleCreateConfirm = useCallback(async () => {
-    if (!newTitle.trim()) return;
-    await createPrompt(newTitle.trim(), newTopic.trim() || "General");
-    setNewPromptOpen(false);
+    const title = newTitle.trim();
+    if (!title) return;
+    try {
+      await createPrompt(title, newTopic.trim() || "General");
+      setNewPromptOpen(false);
+    } catch (err) {
+      console.error("Failed to create prompt:", err);
+    }
   }, [newTitle, newTopic, createPrompt]);
 
   const handleCopy = useCallback(async () => {
@@ -90,14 +98,37 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleNewPrompt, handleTemplate]);
 
-  const handleDirChange = useCallback(
-    async (_dir: string) => {
-      // For v1, reload prompts from new directory
-      // TODO: persist directory setting
-      await loadPrompts();
+  const handleSettingsUpdate = useCallback(
+    async (partial: Partial<import("@/types/settings").AppSettings>) => {
+      await updateSettings(partial);
+      if (partial.promptDir) {
+        await loadPrompts();
+      }
     },
-    [loadPrompts]
+    [updateSettings, loadPrompts]
   );
+
+  const handleRerunSetup = useCallback(() => {
+    setSettingsOpen(false);
+    updateSettings({ onboardingComplete: false });
+  }, [updateSettings]);
+
+  if (settingsLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
+
+  if (settings && !settings.onboardingComplete) {
+    return (
+      <OnboardingWizard
+        defaultSettings={settings}
+        onComplete={completeOnboarding}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -151,12 +182,15 @@ function App() {
           body={editingPrompt.body}
         />
       )}
-      <SettingsModal
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        rootDir={rootDir}
-        onDirChange={handleDirChange}
-      />
+      {settings && (
+        <SettingsModal
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          settings={settings}
+          onUpdate={handleSettingsUpdate}
+          onRerunSetup={handleRerunSetup}
+        />
+      )}
 
       {/* New Prompt Dialog */}
       <Dialog open={newPromptOpen} onOpenChange={setNewPromptOpen}>
