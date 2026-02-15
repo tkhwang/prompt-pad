@@ -8,6 +8,7 @@ interface TopicGroupProps {
   name: string;
   prompts: Prompt[];
   selectedId: string | null;
+  viewMode: "simple" | "detail";
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
 }
@@ -16,6 +17,7 @@ export function TopicGroup({
   name,
   prompts,
   selectedId,
+  viewMode,
   onSelect,
   onDelete,
 }: TopicGroupProps) {
@@ -43,6 +45,7 @@ export function TopicGroup({
             key={prompt.id}
             prompt={prompt}
             isSelected={prompt.id === selectedId}
+            viewMode={viewMode}
             onClick={() => onSelect(prompt.id)}
             onDelete={() => onDelete(prompt.id)}
           />

@@ -1,5 +1,5 @@
 import { join } from "@tauri-apps/api/path";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   deletePromptFile,
   ensureDir,
@@ -22,6 +22,8 @@ export function usePrompts(promptDir: string) {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const selectedIdRef = useRef(selectedId);
+  selectedIdRef.current = selectedId;
 
   const selectedPrompt = prompts.find((p) => p.id === selectedId) || null;
 
@@ -57,7 +59,7 @@ export function usePrompts(promptDir: string) {
       setPrompts(allPrompts);
       setTopics(allTopics);
 
-      if (allPrompts.length > 0 && !selectedId) {
+      if (allPrompts.length > 0 && !selectedIdRef.current) {
         setSelectedId(allPrompts[0].id);
       }
     } catch (error) {
@@ -65,7 +67,7 @@ export function usePrompts(promptDir: string) {
     } finally {
       setLoading(false);
     }
-  }, [promptDir, selectedId]);
+  }, [promptDir]);
 
   useEffect(() => {
     loadPrompts();

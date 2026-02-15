@@ -52,9 +52,12 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   } = usePrompts(settings?.promptDir ?? "");
 
   const { query, setQuery, filtered } = useSearch(prompts);
+
   const [editingPrompt, setEditingPrompt] = useState(selectedPrompt);
   const [templateOpen, setTemplateOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"simple" | "detail">("detail");
+
   const titleInputRef = useRef<HTMLInputElement>(null);
   const bodyInputRef = useRef<HTMLTextAreaElement>(null);
   const shouldFocusBodyRef = useRef(false);
@@ -215,6 +218,10 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
           onSelect={setSelectedId}
           onDelete={deletePrompt}
           onNewPrompt={handleNewPrompt}
+          viewMode={viewMode}
+          onViewModeToggle={() =>
+            setViewMode((v) => (v === "simple" ? "detail" : "simple"))
+          }
         />
         <Editor
           prompt={editingPrompt}

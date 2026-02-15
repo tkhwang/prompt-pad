@@ -16,6 +16,7 @@ import type { Prompt } from "@/types/prompt";
 interface PromptItemProps {
   prompt: Prompt;
   isSelected: boolean;
+  viewMode: "simple" | "detail";
   onClick: () => void;
   onDelete: () => void;
 }
@@ -23,6 +24,7 @@ interface PromptItemProps {
 export function PromptItem({
   prompt,
   isSelected,
+  viewMode,
   onClick,
   onDelete,
 }: PromptItemProps) {
@@ -46,7 +48,7 @@ export function PromptItem({
         )}
       >
         <div className="font-medium text-sm truncate">{prompt.title}</div>
-        {preview && (
+        {viewMode === "detail" && preview && (
           <div className="text-xs text-muted-foreground truncate mt-0.5">
             {preview}
           </div>

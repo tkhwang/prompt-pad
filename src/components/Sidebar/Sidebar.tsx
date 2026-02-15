@@ -13,6 +13,8 @@ interface SidebarProps {
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
   onNewPrompt: () => void;
+  viewMode: "simple" | "detail";
+  onViewModeToggle: () => void;
 }
 
 export function Sidebar({
@@ -23,6 +25,8 @@ export function Sidebar({
   onSelect,
   onDelete,
   onNewPrompt,
+  viewMode,
+  onViewModeToggle,
 }: SidebarProps) {
   const { t } = useTranslation();
 
@@ -46,6 +50,8 @@ export function Sidebar({
         query={query}
         onQueryChange={onQueryChange}
         onNewPrompt={onNewPrompt}
+        viewMode={viewMode}
+        onViewModeToggle={onViewModeToggle}
       />
       <ScrollArea className="flex-1">
         {grouped.map(([topic, topicPrompts]) => (
@@ -54,6 +60,7 @@ export function Sidebar({
             name={topic}
             prompts={topicPrompts}
             selectedId={selectedId}
+            viewMode={viewMode}
             onSelect={onSelect}
             onDelete={onDelete}
           />

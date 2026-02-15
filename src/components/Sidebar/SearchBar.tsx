@@ -1,4 +1,4 @@
-import { Plus, Search } from "lucide-react";
+import { LayoutList, List, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/i18n/I18nProvider";
@@ -7,12 +7,16 @@ interface SearchBarProps {
   query: string;
   onQueryChange: (query: string) => void;
   onNewPrompt: () => void;
+  viewMode: "simple" | "detail";
+  onViewModeToggle: () => void;
 }
 
 export function SearchBar({
   query,
   onQueryChange,
   onNewPrompt,
+  viewMode,
+  onViewModeToggle,
 }: SearchBarProps) {
   const { t } = useTranslation();
 
@@ -27,6 +31,13 @@ export function SearchBar({
           className="pl-9"
         />
       </div>
+      <Button variant="ghost" size="icon" onClick={onViewModeToggle}>
+        {viewMode === "simple" ? (
+          <List className="h-4 w-4" />
+        ) : (
+          <LayoutList className="h-4 w-4" />
+        )}
+      </Button>
       <Button variant="outline" size="icon" onClick={onNewPrompt}>
         <Plus className="h-4 w-4" />
       </Button>
