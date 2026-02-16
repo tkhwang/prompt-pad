@@ -74,7 +74,9 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [editorMode, setEditorMode] = useState<"view" | "edit">("view");
   const [copied, setCopied] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"simple" | "detail">("detail");
+  const [viewMode, setViewMode] = useState<"compact" | "cozy" | "detailed">(
+    "cozy",
+  );
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [topicPanelOpen, setTopicPanelOpen] = useState(false);
   const [createTopicDialogOpen, setCreateTopicDialogOpen] = useState(false);
@@ -374,7 +376,13 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
               <SidebarToolbar
                 viewMode={viewMode}
                 onViewModeToggle={() =>
-                  setViewMode((v) => (v === "simple" ? "detail" : "simple"))
+                  setViewMode((v) =>
+                    v === "compact"
+                      ? "cozy"
+                      : v === "cozy"
+                        ? "detailed"
+                        : "compact",
+                  )
                 }
                 onNewPrompt={handleNewPrompt}
               />
