@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/i18n/I18nProvider";
 import { extractVariables } from "@/lib/template";
 import { cn } from "@/lib/utils";
@@ -64,6 +65,23 @@ export function PromptItem({
         {viewMode === "detail" && preview && (
           <div className="text-xs text-muted-foreground truncate mt-0.5">
             {preview}
+          </div>
+        )}
+        {viewMode === "detail" && prompt.tags.length > 0 && (
+          <div className="flex items-center gap-1 mt-1 overflow-hidden">
+            {prompt.tags.slice(0, 3).map((tag) => (
+              <Badge
+                key={tag}
+                className="text-[10px] px-1.5 py-0 h-4 shrink-0 bg-primary/15 text-primary border-transparent"
+              >
+                {tag}
+              </Badge>
+            ))}
+            {prompt.tags.length > 3 && (
+              <span className="text-[10px] text-muted-foreground shrink-0">
+                +{prompt.tags.length - 3}
+              </span>
+            )}
           </div>
         )}
       </button>

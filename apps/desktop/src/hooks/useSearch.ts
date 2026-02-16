@@ -10,7 +10,8 @@ export function useSearch(prompts: Prompt[]) {
     return prompts.filter(
       (p) =>
         p.title.toLowerCase().includes(lower) ||
-        p.body.toLowerCase().includes(lower),
+        p.body.toLowerCase().includes(lower) ||
+        p.tags.some((tag) => tag.toLowerCase().includes(lower)),
     );
   }, [prompts, query]);
 
