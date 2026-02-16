@@ -10,7 +10,8 @@
     "tauri:dev": "pnpm --filter @prompt-pad/desktop tauri dev",
     "tauri:build": "pnpm --filter @prompt-pad/desktop tauri build",
     "build:desktop": "turbo run build --filter=@prompt-pad/desktop",
-    "build:backend": "turbo run build --filter=@prompt-pad/backend"
+    "build:backend": "turbo run build --filter=@prompt-pad/backend",
+    "clean": "rm -rf .turbo apps/*/dist packages/*/dist apps/*/*.tsbuildinfo packages/*/*.tsbuildinfo apps/*/node_modules packages/*/node_modules node_modules"
   },
   "devDependencies": {
     "turbo": "^2",
@@ -18,8 +19,7 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "esbuild",
-      "@nestjs/core"
+      "esbuild"
     ]
   },
   "packageManager": "pnpm@10.28.1"

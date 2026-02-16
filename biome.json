@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!!**/dist", "!!**/.turbo"]
+    "includes": ["**", "!!**/dist", "!!**/.turbo", "!!**/src-tauri"]
   },
   "formatter": {
     "enabled": true,
