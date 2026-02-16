@@ -1,4 +1,5 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { open } from "@tauri-apps/plugin-shell";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { EditorPanel } from "@/components/Editor/EditorPanel";
@@ -260,6 +261,14 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     }
   }, [editingPrompt]);
 
+  const handleSendTo = useCallback(
+    async (url: string) => {
+      await handleCopy();
+      await open(url);
+    },
+    [handleCopy],
+  );
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -401,6 +410,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         onNewTopic={handleNewTopicShortcut}
         onSettingsOpen={() => setSettingsOpen(true)}
         onCopy={handleCopy}
+        onSendTo={handleSendTo}
         copied={copied}
         hasPrompt={!!editingPrompt}
         topicPanelOpen={topicPanelOpen}

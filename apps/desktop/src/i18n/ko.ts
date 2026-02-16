@@ -105,6 +105,7 @@ export const ko: DeepStringify<typeof en> = {
     tag_placeholder: "태그 추가...",
     copy: "복사",
     copied: "복사됨!",
+    sendTo: "{{service}}",
     view: "보기",
     edit: "편집",
   },

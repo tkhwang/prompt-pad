@@ -100,6 +100,7 @@ export const en = {
     tag_placeholder: "Add tag...",
     copy: "Copy",
     copied: "Copied!",
+    sendTo: "{{service}}",
     view: "View",
     edit: "Edit",
   },
