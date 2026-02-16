@@ -51,10 +51,10 @@ export function TemplatePanel({
       <ScrollArea className="flex-1 min-h-0">
         <div className="p-3 space-y-3">
           {variables.map((variable) => (
-            <div key={variable} className="space-y-1">
+            <div key={variable} className="space-y-2">
               <label
                 htmlFor={`tpl-${variable}`}
-                className="text-xs font-medium text-muted-foreground"
+                className="text-xs font-medium text-muted-foreground font-mono"
               >
                 {`{{${variable}}}`}
               </label>
@@ -67,7 +67,7 @@ export function TemplatePanel({
                 placeholder={t("template.placeholder", { name: variable })}
                 rows={3}
                 readOnly={editorMode === "view"}
-                className={`placeholder:text-muted-foreground border-input dark:bg-input/30 w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] resize-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] ${editorMode === "view" ? "opacity-60 cursor-default" : ""}`}
+                className={`placeholder:text-muted-foreground border-input dark:bg-input/30 w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] resize-none ${editorMode === "view" ? "opacity-60 cursor-default focus-visible:ring-0 focus-visible:border-input" : "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"}`}
               />
             </div>
           ))}

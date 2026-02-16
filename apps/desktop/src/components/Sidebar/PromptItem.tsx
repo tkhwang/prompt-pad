@@ -56,7 +56,7 @@ export function PromptItem({
         <div className="flex items-center gap-1 min-w-0">
           <span className="font-medium text-sm truncate">{prompt.title}</span>
           {variables.length > 0 && (
-            <span className="shrink-0 flex items-center gap-0.5 text-muted-foreground">
+            <span className="shrink-0 flex items-center gap-0.5 text-primary">
               <Sparkles className="h-3 w-3" />
               <span className="text-[10px]">{variables.length}</span>
             </span>
