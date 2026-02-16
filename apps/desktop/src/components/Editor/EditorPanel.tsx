@@ -84,7 +84,7 @@ export function EditorPanel({
     (value: string) => {
       const tag = value.trim();
       if (!prompt || !tag) return;
-      if (prompt.tags.includes(tag)) {
+      if (prompt.tags.some((t) => t.toLowerCase() === tag.toLowerCase())) {
         setTagInput("");
         return;
       }
