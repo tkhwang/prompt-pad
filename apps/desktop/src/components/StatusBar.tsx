@@ -43,6 +43,14 @@ export function StatusBar({
   return (
     <div className="flex items-center justify-between px-4 py-2.5 border-t border-border/40 text-xs text-muted-foreground">
       <div className="flex items-center gap-4">
+        <button
+          type="button"
+          onClick={onSettingsOpen}
+          className="flex items-center hover:text-foreground transition-colors"
+        >
+          <Settings className="h-4 w-4" />
+        </button>
+        <div className="h-3.5 w-px bg-border/60" />
         {topicPanelOpen && (
           <button
             type="button"
@@ -110,14 +118,6 @@ export function StatusBar({
             </DropdownMenu>
           </div>
         )}
-        <button
-          type="button"
-          onClick={onSettingsOpen}
-          className="flex items-center gap-1.5 hover:text-foreground transition-colors"
-        >
-          {t("status.settings")}
-          <Settings className="h-3.5 w-3.5" />
-        </button>
       </div>
     </div>
   );
