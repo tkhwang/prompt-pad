@@ -2,7 +2,7 @@
 
 A desktop app for managing AI prompt templates. Prompts are stored as plain Markdown files on your filesystem — no cloud, no lock-in.
 
-Built with [Tauri 2](https://v2.tauri.app/) + [React 19](https://react.dev/).
+Built with [Tauri 2](https://v2.tauri.app/) + [React 19](https://react.dev/) + [NestJS 11](https://nestjs.com/), managed as a [Turborepo](https://turbo.build/) monorepo.
 
 ## Features
 
@@ -65,29 +65,46 @@ pnpm install
 ### Development
 
 ```bash
-pnpm tauri dev        # Full desktop app with hot reload
-pnpm run dev          # Vite dev server only (localhost:1420)
+# Monorepo
+pnpm dev              # All packages in dev mode (Turborepo)
+
+# Desktop
+pnpm dev:desktop      # Vite dev server only (localhost:1420)
+pnpm tauri:dev        # Full Tauri desktop app with hot reload
+
+# Backend
+pnpm dev:backend      # NestJS watch mode (localhost:3000)
 ```
 
 ### Build
 
 ```bash
-pnpm tauri build      # Production desktop binary
+# Monorepo
+pnpm build            # Build all packages (shared → desktop + backend)
+
+# Desktop
+pnpm build:desktop    # tsc + Vite bundle
+pnpm tauri:build      # Production desktop binary
+
+# Backend
+pnpm build:backend    # nest build
 ```
 
 ### Lint & Format
 
 ```bash
-pnpm run check        # Biome lint + format (auto-fix)
-pnpm run build        # TypeScript type-check + Vite build
+pnpm check            # Biome lint + format (auto-fix) across all packages
 ```
 
 ## Tech Stack
 
 | Layer         | Technology                                                |
 | ------------- | --------------------------------------------------------- |
+| Monorepo      | pnpm workspaces, Turborepo 2                              |
 | Frontend      | React 19, TypeScript (strict), Tailwind CSS v4, shadcn/ui |
 | Desktop       | Tauri 2 (Rust)                                            |
+| Backend       | NestJS 11, TypeScript (strict)                            |
+| Shared        | TypeScript types (`@prompt-pad/shared`)                   |
 | Tauri Plugins | fs, dialog, clipboard-manager, store                      |
 | Linting       | Biome                                                     |
 | Icons         | lucide-react                                              |

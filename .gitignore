@@ -3,11 +3,13 @@ node_modules/
 
 # Build output
 dist/
-# Tauri build output
 *.tsbuildinfo
 
 # Rust
-src-tauri/target/
+**/target/
+
+# Turborepo
+.turbo/
 
 # IDE
 .vscode/
@@ -22,6 +24,7 @@ Thumbs.db
 # Environment
 .env
 .env.local
+.env.*.local
 
 # Claude Code
 .claude/
