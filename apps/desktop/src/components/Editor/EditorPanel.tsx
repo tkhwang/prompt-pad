@@ -216,7 +216,7 @@ export function EditorPanel({
       {/* Main content: Editor + Copy (left) | TemplatePanel (right) */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left: Editor + Copy button */}
-        <div className="flex flex-1 flex-col min-w-0">
+        <div className={`flex flex-1 flex-col min-w-0 ${editorMode === "view" ? "bg-muted/50" : ""}`}>
           {editorMode === "edit" ? (
             <Editor prompt={prompt} onUpdate={onUpdate} bodyRef={bodyRef} />
           ) : (
