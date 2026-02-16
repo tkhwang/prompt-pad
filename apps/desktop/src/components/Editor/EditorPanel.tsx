@@ -1,5 +1,4 @@
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { Check, Copy, Eye, Pencil, X } from "lucide-react";
+import { Eye, Pencil, X } from "lucide-react";
 import {
   type RefObject,
   useCallback,
@@ -24,8 +23,6 @@ interface EditorPanelProps {
   editorMode: "view" | "edit";
   onEditorModeChange: (mode: "view" | "edit") => void;
   onUpdate: (updated: Prompt) => void;
-  onCopy: () => void;
-  copied: boolean;
   titleRef?: RefObject<HTMLInputElement | null>;
   bodyRef?: RefObject<HTMLTextAreaElement | null>;
   onTitleEnter?: () => void;
@@ -36,15 +33,11 @@ export function EditorPanel({
   editorMode,
   onEditorModeChange,
   onUpdate,
-  onCopy,
-  copied,
   titleRef,
   bodyRef,
   onTitleEnter,
 }: EditorPanelProps) {
   const { t } = useTranslation();
-  const [templateCopied, setTemplateCopied] = useState(false);
-
   const body = prompt?.body ?? "";
   const variables = useMemo(() => extractVariables(body), [body]);
   const prevVariablesRef = useRef<string[]>(variables);
@@ -85,14 +78,6 @@ export function EditorPanel({
     [prompt, onUpdate],
   );
 
-  const handleCopyWithVariables = useCallback(async () => {
-    if (!prompt) return;
-    const result = substituteVariables(prompt.body, templateValues);
-    await writeText(result);
-    setTemplateCopied(true);
-    setTimeout(() => setTemplateCopied(false), 2000);
-  }, [prompt, templateValues]);
-
   const [tagInput, setTagInput] = useState("");
 
   const handleAddTag = useCallback(
@@ -128,11 +113,6 @@ export function EditorPanel({
   }
 
   const hasVariables = variables.length > 0;
-  const isCopied = hasVariables ? templateCopied : copied;
-  const handleCopy = hasVariables ? handleCopyWithVariables : onCopy;
-  const copyLabel = isCopied
-    ? t("editor.copied")
-    : t(hasVariables ? "template.copy" : "editor.copy");
 
   const toggleMode = () =>
     onEditorModeChange(editorMode === "view" ? "edit" : "view");
@@ -213,10 +193,12 @@ export function EditorPanel({
         </div>
       )}
 
-      {/* Main content: Editor + Copy (left) | TemplatePanel (right) */}
+      {/* Main content: Editor (left) | TemplatePanel (right) */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left: Editor + Copy button */}
-        <div className={`flex flex-1 flex-col min-w-0 ${editorMode === "view" ? "bg-muted/50" : ""}`}>
+        {/* Left: Editor */}
+        <div
+          className={`flex flex-1 flex-col min-w-0 ${editorMode === "view" ? "bg-muted/50" : ""}`}
+        >
           {editorMode === "edit" ? (
             <Editor prompt={prompt} onUpdate={onUpdate} bodyRef={bodyRef} />
           ) : (
@@ -230,22 +212,6 @@ export function EditorPanel({
               />
             </ScrollArea>
           )}
-
-          {/* Bottom Copy button */}
-          <div className="px-5 py-3 border-t border-border/40">
-            <Button
-              variant="outline"
-              className="w-full shadow-none hover:bg-primary hover:text-primary-foreground transition-all duration-200"
-              onClick={handleCopy}
-            >
-              {isCopied ? (
-                <Check className="h-4 w-4" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-              {copyLabel}
-            </Button>
-          </div>
         </div>
 
         {/* Right: Template variables panel */}

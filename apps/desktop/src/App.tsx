@@ -27,6 +27,7 @@ import { useSearch } from "@/hooks/useSearch";
 import { useSettings } from "@/hooks/useSettings";
 import type { Language } from "@/i18n";
 import { I18nProvider, useTranslation } from "@/i18n/I18nProvider";
+import { extractVariables, substituteVariables } from "@/lib/template";
 import { generateTitle } from "@/lib/title-generator";
 import { cn } from "@/lib/utils";
 
@@ -245,7 +246,15 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
 
   const handleCopy = useCallback(async () => {
     if (editingPrompt) {
-      await writeText(editingPrompt.body);
+      const variables = extractVariables(editingPrompt.body);
+      const text =
+        variables.length > 0
+          ? substituteVariables(
+              editingPrompt.body,
+              editingPrompt.templateValues ?? {},
+            )
+          : editingPrompt.body;
+      await writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -378,8 +387,6 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
               editorMode={editorMode}
               onEditorModeChange={setEditorMode}
               onUpdate={setEditingPrompt}
-              onCopy={handleCopy}
-              copied={copied}
               titleRef={titleInputRef}
               bodyRef={bodyInputRef}
               onTitleEnter={handleTitleEnter}
@@ -393,6 +400,9 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         onNewPrompt={handleNewPrompt}
         onNewTopic={handleNewTopicShortcut}
         onSettingsOpen={() => setSettingsOpen(true)}
+        onCopy={handleCopy}
+        copied={copied}
+        hasPrompt={!!editingPrompt}
         topicPanelOpen={topicPanelOpen}
       />
 

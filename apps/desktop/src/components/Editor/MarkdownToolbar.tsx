@@ -123,7 +123,7 @@ function ToolbarButton({
     <Button
       variant="ghost"
       size="icon-xs"
-      className="text-muted-foreground hover:text-foreground"
+      className="text-foreground/60 hover:text-foreground"
       onClick={onClick}
       title={action.label}
     >
@@ -159,7 +159,7 @@ export function MarkdownToolbar({
   );
 
   return (
-    <div className="flex items-center gap-0.5 px-5 py-1.5 border-b border-border/30">
+    <div className="flex items-center gap-0.5 px-5 py-1.5 border-b border-border/60">
       {ACTIONS.map((action) => (
         <ToolbarButton
           key={action.label}

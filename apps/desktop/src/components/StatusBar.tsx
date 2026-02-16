@@ -1,4 +1,5 @@
-import { Settings } from "lucide-react";
+import { Check, Copy, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/i18n/I18nProvider";
 
 function Kbd({ children }: { children: React.ReactNode }) {
@@ -13,6 +14,9 @@ interface StatusBarProps {
   onNewPrompt: () => void;
   onNewTopic: () => void;
   onSettingsOpen: () => void;
+  onCopy: () => void;
+  copied: boolean;
+  hasPrompt: boolean;
   topicPanelOpen: boolean;
 }
 
@@ -20,6 +24,9 @@ export function StatusBar({
   onNewPrompt,
   onNewTopic,
   onSettingsOpen,
+  onCopy,
+  copied,
+  hasPrompt,
   topicPanelOpen,
 }: StatusBarProps) {
   const { t } = useTranslation();
@@ -49,14 +56,36 @@ export function StatusBar({
           <Kbd>N</Kbd>
         </button>
       </div>
-      <button
-        type="button"
-        onClick={onSettingsOpen}
-        className="flex items-center gap-1.5 hover:text-foreground transition-colors"
-      >
-        {t("status.settings")}
-        <Settings className="h-3.5 w-3.5" />
-      </button>
+      <div className="flex items-center gap-4">
+        {hasPrompt && (
+          <Button
+            variant="default"
+            size="sm"
+            className="min-w-24"
+            onClick={onCopy}
+          >
+            {copied ? (
+              <>
+                <Check className="h-3.5 w-3.5" />
+                {t("editor.copied")}
+              </>
+            ) : (
+              <>
+                <Copy className="h-3.5 w-3.5" />
+                {t("editor.copy")}
+              </>
+            )}
+          </Button>
+        )}
+        <button
+          type="button"
+          onClick={onSettingsOpen}
+          className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+        >
+          {t("status.settings")}
+          <Settings className="h-3.5 w-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
