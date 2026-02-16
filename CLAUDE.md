@@ -5,10 +5,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Dev Commands
 
 ```bash
-pnpm run dev          # Vite dev server on localhost:1420
-pnpm run build        # tsc -b && vite build (type-check then bundle)
-pnpm tauri dev        # Full Tauri desktop app with hot reload
-pnpm tauri build      # Production desktop binary
+# Monorepo (root)
+pnpm build             # Turbo: build all packages (shared → desktop + backend)
+pnpm dev               # Turbo: dev all packages
+pnpm check             # Biome lint + format (auto-fix) across all packages
+
+# Desktop (Tauri + React)
+pnpm dev:desktop       # Vite dev server on localhost:1420
+pnpm build:desktop     # tsc -b && vite build
+pnpm --filter @prompt-pad/desktop tauri dev    # Full Tauri app with hot reload
+pnpm --filter @prompt-pad/desktop tauri build  # Production desktop binary
+
+# Backend (NestJS)
+pnpm dev:backend       # NestJS watch mode on localhost:3000
+pnpm build:backend     # nest build
+
+# Shared types
+pnpm --filter @prompt-pad/shared build   # tsc -b → dist/
 ```
 
 No test framework is configured.
@@ -18,22 +31,45 @@ No test framework is configured.
 Always run these checks after modifying code:
 
 ```bash
-pnpm run build          # TypeScript type-check + build
-pnpm run check          # Biome lint + format (auto-fix)
+pnpm build              # TypeScript type-check + build all packages
+pnpm check              # Biome lint + format (auto-fix)
 ```
 
-`pnpm run check` runs `biome check --write .` which handles linting, formatting, and import sorting in one pass.
+`pnpm check` runs `biome check --write .` which handles linting, formatting, and import sorting in one pass.
 
 ## Architecture
 
-**Prompt Pad** is a Tauri 2 desktop app (React 19 + Rust) for managing prompt templates stored as markdown files on disk.
+**Prompt Pad** is a monorepo containing a Tauri 2 desktop app, a NestJS backend, and a shared types package.
+
+### Monorepo Structure
+
+```
+prompt-pad/
+├── apps/
+│   ├── desktop/          # @prompt-pad/desktop — Tauri 2 + React 19
+│   │   ├── src/          # React frontend code
+│   │   ├── src-tauri/    # Rust Tauri backend
+│   │   └── ...
+│   └── backend/          # @prompt-pad/backend — NestJS 11 API server
+│       └── src/          # NestJS modules, controllers, services
+├── packages/
+│   └── shared/           # @prompt-pad/shared — shared TypeScript types
+│       └── src/
+├── turbo.json            # Turborepo task config
+├── pnpm-workspace.yaml   # pnpm workspace definition
+├── tsconfig.base.json    # Shared TypeScript base config
+├── biome.json            # Biome config (applies to all packages)
+└── package.json          # Root scripts + workspace devDependencies
+```
 
 ### Stack
 
-- **Frontend**: React 19, TypeScript (strict), Tailwind CSS v4, shadcn/ui (new-york style)
-- **Desktop shell**: Tauri 2 with plugins: fs, dialog, clipboard-manager, store
+- **Monorepo**: pnpm workspaces + Turborepo 2
+- **Desktop**: React 19, TypeScript (strict), Tailwind CSS v4, shadcn/ui (new-york style), Tauri 2
+- **Backend**: NestJS 11, TypeScript (strict)
+- **Shared**: TypeScript types consumed by both desktop and backend
 - **Icons**: lucide-react
-- **Path alias**: `@/*` → `./src/*`
+- **Path alias** (desktop): `@/*` → `./src/*`
 
 ### Data Model
 
@@ -49,7 +85,7 @@ The filesystem is the database. Prompts are markdown files with YAML frontmatter
 
 Settings persist via Tauri Store at `~/.PromptPad/settings.json`.
 
-### Key Hooks
+### Key Hooks (Desktop)
 
 | Hook | Purpose |
 |------|---------|
@@ -58,7 +94,7 @@ Settings persist via Tauri Store at `~/.PromptPad/settings.json`.
 | `useAutoSave(prompt, onSave)` | Debounced (500ms) save with JSON-diff change detection |
 | `useSearch(prompts)` | Case-insensitive search over title + body |
 
-### Component Layout
+### Component Layout (Desktop)
 
 ```
 App.tsx                          # Root: I18nProvider + state orchestration
@@ -76,6 +112,14 @@ App.tsx                          # Root: I18nProvider + state orchestration
 └── OnboardingWizard             # First-run setup flow
 ```
 
+### Backend (NestJS)
+
+Minimal NestJS 11 API server. Uses `@prompt-pad/shared` types for API contracts. Health endpoint at `GET /` returns `ApiResponse<{ status: string }>`.
+
+### Shared Package
+
+`@prompt-pad/shared` contains TypeScript interfaces shared between desktop and backend: `ApiResponse<T>`, `LoginRequest`, `LoginResponse`, `UserInfo`.
+
 ### I18n
 
 Custom Context-based implementation (not i18next). Type-safe keys derived from `en.ts` structure via `NestedKeyOf`. Supports `{{variable}}` interpolation. Languages: `en.ts`, `ko.ts`.
@@ -90,7 +134,7 @@ Prompts support `{{variableName}}` placeholders. `extractVariables()` parses the
 
 ## TypeScript
 
-Strict mode with `noUnusedLocals` and `noUnusedParameters` — unused variables cause build failures.
+Strict mode with `noUnusedLocals` and `noUnusedParameters` — unused variables cause build failures. Base config in `tsconfig.base.json`, extended by each package.
 
 ## Git
 
@@ -98,7 +142,9 @@ Do NOT create git commits. The user handles all git operations (commit, push, et
 
 ## Conventions
 
-- shadcn/ui components live in `src/components/ui/` — these are library primitives, not app code
+- shadcn/ui components live in `apps/desktop/src/components/ui/` — these are library primitives, not app code
 - Feature components are organized by domain folder (Editor/, Sidebar/)
-- All Tauri filesystem operations are wrapped in `src/lib/fs.ts`
+- All Tauri filesystem operations are wrapped in `apps/desktop/src/lib/fs.ts`
+- NestJS controllers/services use `@prompt-pad/shared` types for API contracts
+- NestJS files with DI imports need `biome-ignore lint/style/useImportType` comments
 - Conventional commits: `feat(scope):`, `fix(scope):`, `chore(scope):`
