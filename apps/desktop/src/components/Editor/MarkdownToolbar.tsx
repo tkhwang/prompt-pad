@@ -48,11 +48,21 @@ function wrapSelection(
 
 function prependLine(text: string, start: number, end: number, prefix: string) {
   const lineStart = text.lastIndexOf("\n", start - 1) + 1;
-  const newText = text.slice(0, lineStart) + prefix + text.slice(lineStart);
+  const lineEnd = text.indexOf("\n", end);
+  const block = text.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+  const prefixed = block
+    .split("\n")
+    .map((line) => (line ? prefix + line : line))
+    .join("\n");
+  const newText =
+    text.slice(0, lineStart) +
+    prefixed +
+    (lineEnd === -1 ? "" : text.slice(lineEnd));
+  const addedCount = block.split("\n").filter((line) => line.length > 0).length;
   return {
     newText,
     cursorStart: start + prefix.length,
-    cursorEnd: end + prefix.length,
+    cursorEnd: end + prefix.length * addedCount,
   };
 }
 
