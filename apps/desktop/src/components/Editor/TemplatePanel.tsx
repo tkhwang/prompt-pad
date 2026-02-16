@@ -21,7 +21,7 @@ export function TemplatePanel({
 
   if (collapsed) {
     return (
-      <div className="shrink-0 border-l flex items-start pt-2">
+      <div className="shrink-0 border-l border-border/40 flex items-start pt-2">
         <button
           type="button"
           onClick={() => setCollapsed(false)}
@@ -35,8 +35,8 @@ export function TemplatePanel({
   }
 
   return (
-    <div className="w-72 shrink-0 border-l flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b">
+    <div className="w-72 shrink-0 border-l border-border/40 flex flex-col overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/40">
         <span className="text-sm font-medium">
           {t("template.title")} ({variables.length})
         </span>

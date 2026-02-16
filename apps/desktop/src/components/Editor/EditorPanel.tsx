@@ -114,7 +114,7 @@ export function EditorPanel({
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Title + mode toggle row */}
-      <div className="flex items-center px-4 py-3 border-b gap-2">
+      <div className="flex items-center px-5 py-3 border-b border-border/40 gap-2">
         <div className="flex-1 min-w-0 h-9 flex items-center">
           {editorMode === "edit" ? (
             <Input
@@ -150,7 +150,7 @@ export function EditorPanel({
           {editorMode === "edit" ? (
             <Editor prompt={prompt} onUpdate={onUpdate} bodyRef={bodyRef} />
           ) : (
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea className="flex-1 px-5 py-4">
               <pre
                 className="whitespace-pre-wrap leading-relaxed"
                 style={{
@@ -164,8 +164,12 @@ export function EditorPanel({
           )}
 
           {/* Bottom Copy button */}
-          <div className="px-4 py-3 border-t">
-            <Button className="w-full" onClick={handleCopy}>
+          <div className="px-5 py-3 border-t border-border/40">
+            <Button
+              variant="outline"
+              className="w-full shadow-none hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+              onClick={handleCopy}
+            >
               {isCopied ? (
                 <Check className="h-4 w-4" />
               ) : (

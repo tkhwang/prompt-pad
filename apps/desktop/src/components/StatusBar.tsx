@@ -1,6 +1,14 @@
 import { Settings } from "lucide-react";
 import { useTranslation } from "@/i18n/I18nProvider";
 
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="inline-flex items-center justify-center h-5 min-w-5 px-1 rounded bg-muted/80 border border-border/60 text-[10px] font-medium shadow-[0_1px_0_0] shadow-border/40">
+      {children}
+    </kbd>
+  );
+}
+
 interface StatusBarProps {
   onNewPrompt: () => void;
   onNewTopic: () => void;
@@ -17,32 +25,28 @@ export function StatusBar({
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center justify-between px-3 py-3 border-t text-xs text-muted-foreground">
+    <div className="flex items-center justify-between px-4 py-2.5 border-t border-border/40 text-xs text-muted-foreground">
       <div className="flex items-center gap-4">
         {topicPanelOpen && (
           <button
             type="button"
             onClick={onNewTopic}
-            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 hover:text-foreground transition-colors"
           >
             {t("status.new_topic")}
-            <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px]">
-              ⌘
-            </kbd>
-            <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">⇧</kbd>
-            <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">N</kbd>
+            <Kbd>⌘</Kbd>
+            <Kbd>⇧</Kbd>
+            <Kbd>N</Kbd>
           </button>
         )}
         <button
           type="button"
           onClick={onNewPrompt}
-          className="flex items-center gap-1 hover:text-foreground transition-colors"
+          className="flex items-center gap-1.5 hover:text-foreground transition-colors"
         >
           {t("status.new_prompt")}
-          <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px]">
-            ⌘
-          </kbd>
-          <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">N</kbd>
+          <Kbd>⌘</Kbd>
+          <Kbd>N</Kbd>
         </button>
       </div>
       <button

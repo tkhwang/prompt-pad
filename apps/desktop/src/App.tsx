@@ -351,7 +351,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
           {/* Row 2+: Split into sidebar-list and editor */}
           <div className="flex flex-1 overflow-hidden">
             {/* Col 2: Toolbar + Sidebar list */}
-            <div className="flex flex-col shrink-0 w-72 border-r">
+            <div className="flex flex-col shrink-0 w-72 bg-sidebar">
               <SidebarToolbar
                 viewMode={viewMode}
                 onViewModeToggle={() =>

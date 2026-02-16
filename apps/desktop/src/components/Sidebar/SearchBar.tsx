@@ -11,14 +11,14 @@ export function SearchBar({ query, onQueryChange }: SearchBarProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center gap-2 px-3 py-3 border-b">
+    <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/50">
       <div className="relative flex-1">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/70" />
         <Input
           placeholder={t("sidebar.search_placeholder")}
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          className="pl-9"
+          className="pl-9 bg-muted/50 border-transparent shadow-none focus-visible:bg-background focus-visible:border-ring"
         />
       </div>
     </div>

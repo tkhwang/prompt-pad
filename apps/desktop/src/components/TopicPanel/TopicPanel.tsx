@@ -84,14 +84,15 @@ export function TopicPanel({
   }, [deletingTopic, onDeleteTopic]);
 
   return (
-    <div className="flex flex-col h-full border-r w-48">
+    <div className="flex flex-col h-full w-48 bg-sidebar">
       <button
         type="button"
         onClick={() => onSelectTopic(null)}
         className={cn(
-          "flex items-center gap-2 px-3 py-2.5 text-sm transition-colors",
-          "hover:bg-accent",
-          selectedTopic === null && "bg-accent font-medium",
+          "flex items-center gap-2 mx-1.5 my-0.5 px-2.5 py-2 text-sm rounded-md transition-colors",
+          "hover:bg-sidebar-accent",
+          selectedTopic === null &&
+            "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
         )}
       >
         <Layers className="h-4 w-4 shrink-0" />
@@ -108,9 +109,10 @@ export function TopicPanel({
                 type="button"
                 onClick={() => onSelectTopic(topic.name)}
                 className={cn(
-                  "flex items-center gap-2 w-full px-3 py-2.5 text-sm transition-colors",
-                  "hover:bg-accent",
-                  selectedTopic === topic.name && "bg-accent font-medium",
+                  "flex items-center gap-2 w-full mx-1.5 my-0.5 px-2.5 py-2 text-sm rounded-md transition-colors",
+                  "hover:bg-sidebar-accent",
+                  selectedTopic === topic.name &&
+                    "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
                 )}
               >
                 <FolderOpen className="h-4 w-4 shrink-0" />
@@ -143,7 +145,7 @@ export function TopicPanel({
       </ScrollArea>
 
       {/* Create topic button */}
-      <div className="border-t p-1">
+      <div className="p-1.5">
         <Button
           variant="ghost"
           size="sm"

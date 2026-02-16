@@ -45,9 +45,11 @@ export function PromptItem({
           setShowDeleteDialog(true);
         }}
         className={cn(
-          "w-full text-left px-4 py-2.5 border-b transition-colors",
-          "hover:bg-accent",
-          isSelected && "bg-accent",
+          "w-full text-left px-4 py-2.5 transition-all duration-150 border-l-2",
+          "hover:bg-accent/60",
+          isSelected
+            ? "bg-accent border-l-primary pl-[14px]"
+            : "border-l-transparent",
         )}
       >
         <div className="flex items-center gap-1 min-w-0">

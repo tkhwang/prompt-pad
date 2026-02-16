@@ -30,7 +30,7 @@ function ToolbarButton({ icon: Icon }: { icon: LucideIcon }) {
 
 export function MarkdownToolbar() {
   return (
-    <div className="flex items-center gap-0.5 px-4 py-1.5 border-b">
+    <div className="flex items-center gap-0.5 px-5 py-1.5 border-b border-border/30">
       {/* Group 1: Formatting */}
       <ToolbarButton icon={Heading} />
       <ToolbarButton icon={Bold} />
