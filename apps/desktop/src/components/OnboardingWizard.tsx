@@ -1,24 +1,112 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { FolderOpen, Globe, Monitor, Moon, Sun } from "lucide-react";
+import { Check, FolderOpen, Globe, Monitor, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { Language } from "@/i18n";
+import type { Language, TranslationKey } from "@/i18n";
 import { LANGUAGE_OPTIONS } from "@/i18n";
 import { useTranslation } from "@/i18n/I18nProvider";
-import type { AppSettings, ColorTheme } from "@/types/settings";
+import { THEME_IDS, THEMES } from "@/lib/themes";
+import { cn } from "@/lib/utils";
+import type { AppSettings, ColorTheme, ThemeId } from "@/types/settings";
 
 interface OnboardingWizardProps {
   defaultSettings: AppSettings;
   onComplete: (settings: AppSettings) => void;
   onLanguageChange: (language: Language) => void;
+  onThemePreview: (partial: Partial<AppSettings>) => void;
 }
 
-const STEP_COUNT = 4;
+const STEP_COUNT = 5;
+
+function OnboardingThemeCard({
+  themeId,
+  selected,
+  onClick,
+  label,
+  description,
+}: {
+  themeId: ThemeId;
+  selected: boolean;
+  onClick: () => void;
+  label: string;
+  description: string;
+}) {
+  const preview = THEMES[themeId].preview;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "relative rounded-lg border-2 p-2.5 text-left transition-all",
+        selected
+          ? "border-primary bg-primary/5"
+          : "border-border hover:border-primary/50",
+      )}
+    >
+      {selected && (
+        <div className="absolute top-1.5 right-1.5 rounded-full bg-primary p-0.5">
+          <Check className="h-2.5 w-2.5 text-primary-foreground" />
+        </div>
+      )}
+      {/* Mini preview */}
+      <div
+        className="rounded-md overflow-hidden border border-black/5 mb-2"
+        style={{ backgroundColor: preview.bg }}
+      >
+        <div className="flex h-10">
+          <div
+            className="w-6 shrink-0"
+            style={{
+              backgroundColor: preview.sidebar,
+              borderRight: `1px solid ${preview.border}`,
+            }}
+          >
+            <div
+              className="m-1 h-1.5 rounded-sm"
+              style={{ backgroundColor: preview.accent, opacity: 0.7 }}
+            />
+          </div>
+          <div className="flex-1 p-1.5">
+            <div
+              className="h-1 w-8 rounded-sm opacity-25"
+              style={{ backgroundColor: preview.border }}
+            />
+            <div
+              className="mt-1 h-1 w-12 rounded-sm opacity-15"
+              style={{ backgroundColor: preview.border }}
+            />
+          </div>
+        </div>
+      </div>
+      {/* Swatches */}
+      <div className="flex gap-1 mb-1">
+        <div
+          className="h-2 w-2 rounded-full border border-black/10"
+          style={{ backgroundColor: preview.sidebar }}
+        />
+        <div
+          className="h-2 w-2 rounded-full border border-black/10"
+          style={{ backgroundColor: preview.border }}
+        />
+        <div
+          className="h-2 w-2 rounded-full"
+          style={{ backgroundColor: preview.accent }}
+        />
+      </div>
+      <p className="text-xs font-medium leading-none">{label}</p>
+      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+        {description}
+      </p>
+    </button>
+  );
+}
 
 export function OnboardingWizard({
   defaultSettings,
   onComplete,
   onLanguageChange,
+  onThemePreview,
 }: OnboardingWizardProps) {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
@@ -165,9 +253,10 @@ export function OnboardingWizard({
                   <button
                     type="button"
                     key={value}
-                    onClick={() =>
-                      setSettings((s) => ({ ...s, colorTheme: value }))
-                    }
+                    onClick={() => {
+                      setSettings((s) => ({ ...s, colorTheme: value }));
+                      onThemePreview({ colorTheme: value });
+                    }}
                     className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors ${
                       settings.colorTheme === value
                         ? "border-primary bg-primary/5"
@@ -183,6 +272,32 @@ export function OnboardingWizard({
           )}
 
           {step === 3 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">
+                {t("onboarding.color_theme_title")}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t("onboarding.color_theme_description")}
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                {THEME_IDS.map((id) => (
+                  <OnboardingThemeCard
+                    key={id}
+                    themeId={id}
+                    selected={settings.themeId === id}
+                    onClick={() => {
+                      setSettings((s) => ({ ...s, themeId: id }));
+                      onThemePreview({ themeId: id });
+                    }}
+                    label={t(`theme.${id}` as TranslationKey)}
+                    description={t(`theme.${id}_description` as TranslationKey)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
                 {t("onboarding.font_title")}
@@ -215,7 +330,7 @@ export function OnboardingWizard({
                   style={{
                     fontFamily:
                       "ui-monospace, 'SF Mono', 'Cascadia Code', monospace",
-                    fontSize: settings.fontSize + "px",
+                    fontSize: `${settings.fontSize}px`,
                   }}
                 >
                   {t("onboarding.font_sample")}

@@ -309,6 +309,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         defaultSettings={settings}
         onComplete={completeOnboarding}
         onLanguageChange={handleLanguageChange}
+        onThemePreview={updateSettings}
       />
     );
   }
