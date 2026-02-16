@@ -1,7 +1,7 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { Check, Copy, Eye, Pencil, X } from "lucide-react";
 import {
-  type Ref,
+  type RefObject,
   useCallback,
   useEffect,
   useMemo,
@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { Editor } from "@/components/Editor/Editor";
+import { MarkdownPreview } from "@/components/Editor/MarkdownPreview";
 import { TemplatePanel } from "@/components/Editor/TemplatePanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,8 +26,8 @@ interface EditorPanelProps {
   onUpdate: (updated: Prompt) => void;
   onCopy: () => void;
   copied: boolean;
-  titleRef?: Ref<HTMLInputElement>;
-  bodyRef?: Ref<HTMLTextAreaElement>;
+  titleRef?: RefObject<HTMLInputElement | null>;
+  bodyRef?: RefObject<HTMLTextAreaElement | null>;
   onTitleEnter?: () => void;
 }
 
@@ -219,16 +220,14 @@ export function EditorPanel({
           {editorMode === "edit" ? (
             <Editor prompt={prompt} onUpdate={onUpdate} bodyRef={bodyRef} />
           ) : (
-            <ScrollArea className="flex-1 px-5 py-4">
-              <pre
-                className="whitespace-pre-wrap leading-relaxed"
-                style={{
-                  fontFamily: "var(--editor-font)",
-                  fontSize: "var(--editor-font-size)",
-                }}
-              >
-                {prompt.body}
-              </pre>
+            <ScrollArea className="flex-1 min-h-0 px-5 py-4">
+              <MarkdownPreview
+                content={
+                  hasVariables
+                    ? substituteVariables(prompt.body, templateValues)
+                    : prompt.body
+                }
+              />
             </ScrollArea>
           )}
 
