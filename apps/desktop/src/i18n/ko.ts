@@ -72,6 +72,7 @@ export const ko: DeepStringify<typeof en> = {
     new_topic: "새 토픽",
     copy: "복사",
     select_topic: "토픽 선택",
+    settings: "설정",
   },
 
   template: {

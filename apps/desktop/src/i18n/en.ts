@@ -67,6 +67,7 @@ export const en = {
     new_topic: "New Topic",
     copy: "Copy",
     select_topic: "Select Topic",
+    settings: "Settings",
   },
 
   template: {

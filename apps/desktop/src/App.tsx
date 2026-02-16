@@ -346,11 +346,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         {/* Cols 2+3 wrapper */}
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Row 1: Search spanning full width */}
-          <SearchBar
-            query={query}
-            onQueryChange={setQuery}
-            onSettingsOpen={() => setSettingsOpen(true)}
-          />
+          <SearchBar query={query} onQueryChange={setQuery} />
 
           {/* Row 2+: Split into sidebar-list and editor */}
           <div className="flex flex-1 overflow-hidden">
@@ -395,8 +391,8 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
       <StatusBar
         onNewPrompt={handleNewPrompt}
         onNewTopic={handleNewTopicShortcut}
-        onCopy={handleCopy}
-        hasSelection={!!editingPrompt}
+        onSettingsOpen={() => setSettingsOpen(true)}
+        topicPanelOpen={topicPanelOpen}
       />
 
       {/* Modals */}

@@ -1,19 +1,13 @@
-import { Search, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/i18n/I18nProvider";
 
 interface SearchBarProps {
   query: string;
   onQueryChange: (query: string) => void;
-  onSettingsOpen: () => void;
 }
 
-export function SearchBar({
-  query,
-  onQueryChange,
-  onSettingsOpen,
-}: SearchBarProps) {
+export function SearchBar({ query, onQueryChange }: SearchBarProps) {
   const { t } = useTranslation();
 
   return (
@@ -27,9 +21,6 @@ export function SearchBar({
           className="pl-9"
         />
       </div>
-      <Button variant="ghost" size="icon" onClick={onSettingsOpen}>
-        <Settings className="h-4 w-4" />
-      </Button>
     </div>
   );
 }
