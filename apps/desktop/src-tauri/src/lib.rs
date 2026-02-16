@@ -47,6 +47,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             allow_saved_prompt_dir(&app.handle());
             Ok(())

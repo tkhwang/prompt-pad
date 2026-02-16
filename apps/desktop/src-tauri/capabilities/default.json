@@ -39,6 +39,7 @@
     "clipboard-manager:default",
     "clipboard-manager:allow-write-text",
     "clipboard-manager:allow-read-text",
-    "store:default"
+    "store:default",
+    "shell:allow-open"
   ]
 }

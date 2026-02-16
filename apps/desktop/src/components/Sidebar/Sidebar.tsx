@@ -61,7 +61,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={() => onSelectTopic(null)}
-            className="flex items-center gap-1 w-full px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground border-b border-foreground/10"
+            className="flex items-center gap-1 w-full px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
             <span>{selectedTopic}</span>

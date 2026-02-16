@@ -16,12 +16,21 @@ export function SidebarToolbar({
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center gap-2 px-3 py-3 border-b">
-      <Button variant="outline" className="flex-1" onClick={onNewPrompt}>
+    <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/50">
+      <Button
+        variant="outline"
+        className="flex-1 shadow-none"
+        onClick={onNewPrompt}
+      >
         <Plus className="h-4 w-4" />
         {t("sidebar.new_prompt")}
       </Button>
-      <Button variant="ghost" size="icon" onClick={onViewModeToggle}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-muted-foreground"
+        onClick={onViewModeToggle}
+      >
         {viewMode === "simple" ? (
           <List className="h-4 w-4" />
         ) : (

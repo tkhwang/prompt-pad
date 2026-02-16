@@ -1,4 +1,5 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { open } from "@tauri-apps/plugin-shell";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { EditorPanel } from "@/components/Editor/EditorPanel";
@@ -27,6 +28,7 @@ import { useSearch } from "@/hooks/useSearch";
 import { useSettings } from "@/hooks/useSettings";
 import type { Language } from "@/i18n";
 import { I18nProvider, useTranslation } from "@/i18n/I18nProvider";
+import { extractVariables, substituteVariables } from "@/lib/template";
 import { generateTitle } from "@/lib/title-generator";
 import { cn } from "@/lib/utils";
 
@@ -245,11 +247,27 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
 
   const handleCopy = useCallback(async () => {
     if (editingPrompt) {
-      await writeText(editingPrompt.body);
+      const variables = extractVariables(editingPrompt.body);
+      const text =
+        variables.length > 0
+          ? substituteVariables(
+              editingPrompt.body,
+              editingPrompt.templateValues ?? {},
+            )
+          : editingPrompt.body;
+      await writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   }, [editingPrompt]);
+
+  const handleSendTo = useCallback(
+    async (url: string) => {
+      await handleCopy();
+      await open(url);
+    },
+    [handleCopy],
+  );
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -309,6 +327,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         defaultSettings={settings}
         onComplete={completeOnboarding}
         onLanguageChange={handleLanguageChange}
+        onThemePreview={updateSettings}
       />
     );
   }
@@ -346,16 +365,12 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         {/* Cols 2+3 wrapper */}
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Row 1: Search spanning full width */}
-          <SearchBar
-            query={query}
-            onQueryChange={setQuery}
-            onSettingsOpen={() => setSettingsOpen(true)}
-          />
+          <SearchBar query={query} onQueryChange={setQuery} />
 
           {/* Row 2+: Split into sidebar-list and editor */}
           <div className="flex flex-1 overflow-hidden">
             {/* Col 2: Toolbar + Sidebar list */}
-            <div className="flex flex-col shrink-0 w-72 border-r">
+            <div className="flex flex-col shrink-0 w-72 bg-sidebar">
               <SidebarToolbar
                 viewMode={viewMode}
                 onViewModeToggle={() =>
@@ -381,8 +396,6 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
               editorMode={editorMode}
               onEditorModeChange={setEditorMode}
               onUpdate={setEditingPrompt}
-              onCopy={handleCopy}
-              copied={copied}
               titleRef={titleInputRef}
               bodyRef={bodyInputRef}
               onTitleEnter={handleTitleEnter}
@@ -395,8 +408,12 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
       <StatusBar
         onNewPrompt={handleNewPrompt}
         onNewTopic={handleNewTopicShortcut}
+        onSettingsOpen={() => setSettingsOpen(true)}
         onCopy={handleCopy}
-        hasSelection={!!editingPrompt}
+        onSendTo={handleSendTo}
+        copied={copied}
+        hasPrompt={!!editingPrompt}
+        topicPanelOpen={topicPanelOpen}
       />
 
       {/* Modals */}

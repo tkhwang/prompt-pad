@@ -1,7 +1,6 @@
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { Check, Copy, Eye, Pencil } from "lucide-react";
+import { Eye, Pencil, X } from "lucide-react";
 import {
-  type Ref,
+  type RefObject,
   useCallback,
   useEffect,
   useMemo,
@@ -9,7 +8,9 @@ import {
   useState,
 } from "react";
 import { Editor } from "@/components/Editor/Editor";
+import { MarkdownPreview } from "@/components/Editor/MarkdownPreview";
 import { TemplatePanel } from "@/components/Editor/TemplatePanel";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,10 +23,8 @@ interface EditorPanelProps {
   editorMode: "view" | "edit";
   onEditorModeChange: (mode: "view" | "edit") => void;
   onUpdate: (updated: Prompt) => void;
-  onCopy: () => void;
-  copied: boolean;
-  titleRef?: Ref<HTMLInputElement>;
-  bodyRef?: Ref<HTMLTextAreaElement>;
+  titleRef?: RefObject<HTMLInputElement | null>;
+  bodyRef?: RefObject<HTMLTextAreaElement | null>;
   onTitleEnter?: () => void;
 }
 
@@ -34,15 +33,11 @@ export function EditorPanel({
   editorMode,
   onEditorModeChange,
   onUpdate,
-  onCopy,
-  copied,
   titleRef,
   bodyRef,
   onTitleEnter,
 }: EditorPanelProps) {
   const { t } = useTranslation();
-  const [templateCopied, setTemplateCopied] = useState(false);
-
   const body = prompt?.body ?? "";
   const variables = useMemo(() => extractVariables(body), [body]);
   const prevVariablesRef = useRef<string[]>(variables);
@@ -83,13 +78,29 @@ export function EditorPanel({
     [prompt, onUpdate],
   );
 
-  const handleCopyWithVariables = useCallback(async () => {
-    if (!prompt) return;
-    const result = substituteVariables(prompt.body, templateValues);
-    await writeText(result);
-    setTemplateCopied(true);
-    setTimeout(() => setTemplateCopied(false), 2000);
-  }, [prompt, templateValues]);
+  const [tagInput, setTagInput] = useState("");
+
+  const handleAddTag = useCallback(
+    (value: string) => {
+      const tag = value.trim();
+      if (!prompt || !tag) return;
+      if (prompt.tags.some((t) => t.toLowerCase() === tag.toLowerCase())) {
+        setTagInput("");
+        return;
+      }
+      onUpdate({ ...prompt, tags: [...prompt.tags, tag] });
+      setTagInput("");
+    },
+    [prompt, onUpdate],
+  );
+
+  const handleRemoveTag = useCallback(
+    (tag: string) => {
+      if (!prompt) return;
+      onUpdate({ ...prompt, tags: prompt.tags.filter((t) => t !== tag) });
+    },
+    [prompt, onUpdate],
+  );
 
   if (!prompt) {
     return (
@@ -102,11 +113,6 @@ export function EditorPanel({
   }
 
   const hasVariables = variables.length > 0;
-  const isCopied = hasVariables ? templateCopied : copied;
-  const handleCopy = hasVariables ? handleCopyWithVariables : onCopy;
-  const copyLabel = isCopied
-    ? t("editor.copied")
-    : t(hasVariables ? "template.copy" : "editor.copy");
 
   const toggleMode = () =>
     onEditorModeChange(editorMode === "view" ? "edit" : "view");
@@ -114,7 +120,7 @@ export function EditorPanel({
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Title + mode toggle row */}
-      <div className="flex items-center px-4 py-3 border-b gap-2">
+      <div className="flex items-center px-5 py-3 border-b border-border/40 gap-2">
         <div className="flex-1 min-w-0 h-9 flex items-center">
           {editorMode === "edit" ? (
             <Input
@@ -143,37 +149,69 @@ export function EditorPanel({
         </Button>
       </div>
 
-      {/* Main content: Editor + Copy (left) | TemplatePanel (right) */}
+      {/* Tags row */}
+      {(prompt.tags.length > 0 || editorMode === "edit") && (
+        <div className="flex items-center gap-1.5 px-5 py-1.5 border-b border-border/40 flex-wrap">
+          {prompt.tags.map((tag) => (
+            <Badge
+              key={tag}
+              className="text-xs gap-1 pr-1 bg-primary/15 text-primary border-transparent"
+            >
+              {tag}
+              {editorMode === "edit" && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTag(tag)}
+                  className="ml-0.5 hover:text-destructive transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </Badge>
+          ))}
+          {editorMode === "edit" && (
+            <input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddTag(tagInput);
+                } else if (
+                  e.key === "Backspace" &&
+                  !tagInput &&
+                  prompt.tags.length > 0
+                ) {
+                  handleRemoveTag(prompt.tags[prompt.tags.length - 1]);
+                }
+              }}
+              onBlur={() => handleAddTag(tagInput)}
+              placeholder={t("editor.tag_placeholder")}
+              className="text-xs bg-transparent outline-none min-w-[80px] flex-1 text-muted-foreground placeholder:text-muted-foreground/50"
+            />
+          )}
+        </div>
+      )}
+
+      {/* Main content: Editor (left) | TemplatePanel (right) */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left: Editor + Copy button */}
-        <div className="flex flex-1 flex-col min-w-0">
+        {/* Left: Editor */}
+        <div
+          className={`flex flex-1 flex-col min-w-0 ${editorMode === "view" ? "bg-muted/50" : ""}`}
+        >
           {editorMode === "edit" ? (
             <Editor prompt={prompt} onUpdate={onUpdate} bodyRef={bodyRef} />
           ) : (
-            <ScrollArea className="flex-1 p-4">
-              <pre
-                className="whitespace-pre-wrap leading-relaxed"
-                style={{
-                  fontFamily: "var(--editor-font)",
-                  fontSize: "var(--editor-font-size)",
-                }}
-              >
-                {prompt.body}
-              </pre>
+            <ScrollArea className="flex-1 min-h-0 px-5 py-4">
+              <MarkdownPreview
+                content={
+                  hasVariables
+                    ? substituteVariables(prompt.body, templateValues)
+                    : prompt.body
+                }
+              />
             </ScrollArea>
           )}
-
-          {/* Bottom Copy button */}
-          <div className="px-4 py-3 border-t">
-            <Button className="w-full" onClick={handleCopy}>
-              {isCopied ? (
-                <Check className="h-4 w-4" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-              {copyLabel}
-            </Button>
-          </div>
         </div>
 
         {/* Right: Template variables panel */}

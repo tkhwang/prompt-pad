@@ -1,21 +1,36 @@
 import { useCallback, useEffect, useState } from "react";
 import { loadSettings, saveSettings } from "@/lib/store";
-import type { AppSettings, ColorTheme } from "@/types/settings";
+import { THEMES } from "@/lib/themes";
+import type { AppSettings, ColorTheme, ThemeId } from "@/types/settings";
 
-function applyTheme(theme: ColorTheme) {
-  const root = document.documentElement;
+function isDarkMode(theme: ColorTheme): boolean {
   if (theme === "system") {
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    ).matches;
-    root.classList.toggle("dark", prefersDark);
-  } else {
-    root.classList.toggle("dark", theme === "dark");
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  return theme === "dark";
+}
+
+function applyThemeMode(theme: ColorTheme) {
+  document.documentElement.classList.toggle("dark", isDarkMode(theme));
+}
+
+function applyThemeVars(themeId: ThemeId, colorTheme: ColorTheme) {
+  const dark = isDarkMode(colorTheme);
+  const vars = dark ? THEMES[themeId].dark : THEMES[themeId].light;
+  const root = document.documentElement;
+  for (const [key, value] of Object.entries(vars)) {
+    root.style.setProperty(`--${key}`, value);
   }
 }
 
 function applyFontSize(size: number) {
   document.documentElement.style.setProperty("--editor-font-size", `${size}px`);
+}
+
+function applyAllAppearance(settings: AppSettings) {
+  applyThemeMode(settings.colorTheme);
+  applyThemeVars(settings.themeId, settings.colorTheme);
+  applyFontSize(settings.fontSize);
 }
 
 export function useSettings() {
@@ -26,30 +41,28 @@ export function useSettings() {
     loadSettings()
       .then((s) => {
         setSettings(s);
-        applyTheme(s.colorTheme);
-        applyFontSize(s.fontSize);
+        applyAllAppearance(s);
       })
       .finally(() => setLoading(false));
   }, []);
 
   // Listen for system theme changes when theme is "system"
   useEffect(() => {
-    if (settings?.colorTheme !== "system") return;
+    if (!settings || settings.colorTheme !== "system") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = (e: MediaQueryListEvent) => {
-      document.documentElement.classList.toggle("dark", e.matches);
+    const handler = () => {
+      applyAllAppearance(settings);
     };
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
-  }, [settings?.colorTheme]);
+  }, [settings]);
 
   const updateSettings = useCallback(
     async (partial: Partial<AppSettings>) => {
       if (!settings) return;
       const next = { ...settings, ...partial };
       setSettings(next);
-      if (partial.colorTheme) applyTheme(partial.colorTheme);
-      if (partial.fontSize !== undefined) applyFontSize(partial.fontSize);
+      applyAllAppearance(next);
       await saveSettings(next);
     },
     [settings],
@@ -58,8 +71,7 @@ export function useSettings() {
   const completeOnboarding = useCallback(async (finalSettings: AppSettings) => {
     const completed = { ...finalSettings, onboardingComplete: true };
     setSettings(completed);
-    applyTheme(completed.colorTheme);
-    applyFontSize(completed.fontSize);
+    applyAllAppearance(completed);
     await saveSettings(completed);
   }, []);
 
