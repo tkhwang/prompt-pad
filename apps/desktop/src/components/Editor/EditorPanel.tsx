@@ -149,49 +149,47 @@ export function EditorPanel({
         </Button>
       </div>
 
-      {/* Tags row */}
-      {(prompt.tags.length > 0 || editorMode === "edit") && (
-        <div className="flex items-center gap-1.5 px-5 py-1.5 border-b border-border/40 flex-wrap">
-          {prompt.tags.map((tag) => (
-            <Badge
-              key={tag}
-              className="text-xs gap-1 pr-1 bg-primary/15 text-primary border-transparent"
-            >
-              {tag}
-              {editorMode === "edit" && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTag(tag)}
-                  className="ml-0.5 hover:text-destructive transition-colors"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-            </Badge>
-          ))}
-          {editorMode === "edit" && (
-            <input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddTag(tagInput);
-                } else if (
-                  e.key === "Backspace" &&
-                  !tagInput &&
-                  prompt.tags.length > 0
-                ) {
-                  handleRemoveTag(prompt.tags[prompt.tags.length - 1]);
-                }
-              }}
-              onBlur={() => handleAddTag(tagInput)}
-              placeholder={t("editor.tag_placeholder")}
-              className="text-xs bg-transparent outline-none min-w-[80px] flex-1 text-muted-foreground placeholder:text-muted-foreground/50"
-            />
-          )}
-        </div>
-      )}
+      {/* Tags row — always rendered for consistent header height */}
+      <div className="flex items-center gap-1.5 px-5 py-1.5 border-b border-border/40 flex-wrap min-h-[34px]">
+        {prompt.tags.map((tag) => (
+          <Badge
+            key={tag}
+            className="text-xs gap-1 pr-1 bg-primary/15 text-primary border-transparent"
+          >
+            {tag}
+            {editorMode === "edit" && (
+              <button
+                type="button"
+                onClick={() => handleRemoveTag(tag)}
+                className="ml-0.5 hover:text-destructive transition-colors"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </Badge>
+        ))}
+        {editorMode === "edit" && (
+          <input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddTag(tagInput);
+              } else if (
+                e.key === "Backspace" &&
+                !tagInput &&
+                prompt.tags.length > 0
+              ) {
+                handleRemoveTag(prompt.tags[prompt.tags.length - 1]);
+              }
+            }}
+            onBlur={() => handleAddTag(tagInput)}
+            placeholder={t("editor.tag_placeholder")}
+            className="text-xs bg-transparent outline-none min-w-[80px] flex-1 text-muted-foreground placeholder:text-muted-foreground/50"
+          />
+        )}
+      </div>
 
       {/* Main content: Editor (left) | TemplatePanel (right) */}
       <div className="flex flex-1 overflow-hidden">
@@ -202,15 +200,21 @@ export function EditorPanel({
           {editorMode === "edit" ? (
             <Editor prompt={prompt} onUpdate={onUpdate} bodyRef={bodyRef} />
           ) : (
-            <ScrollArea className="flex-1 min-h-0 px-5 py-4">
-              <MarkdownPreview
-                content={
-                  hasVariables
-                    ? substituteVariables(prompt.body, templateValues)
-                    : prompt.body
-                }
-              />
-            </ScrollArea>
+            <>
+              {/* Spacer matching MarkdownToolbar height for consistent layout */}
+              <div className="px-5 py-1.5 border-b border-border/60">
+                <div className="h-6" />
+              </div>
+              <ScrollArea className="flex-1 min-h-0 px-5 py-4">
+                <MarkdownPreview
+                  content={
+                    hasVariables
+                      ? substituteVariables(prompt.body, templateValues)
+                      : prompt.body
+                  }
+                />
+              </ScrollArea>
+            </>
           )}
         </div>
 
