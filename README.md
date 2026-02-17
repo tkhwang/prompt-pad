@@ -22,7 +22,7 @@ The filesystem is the database. <br />
 On first launch, the onboarding wizard lets you choose where to store your prompts:
 
 ```
-~/PromptPad/               # configurable prompt directory
+~/Documents/PromptPad/               # configurable prompt directory
 └── Topic/
     └── my-prompt1.md
     └── my-prompt2.md
