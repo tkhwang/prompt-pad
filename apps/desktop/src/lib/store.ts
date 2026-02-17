@@ -1,5 +1,6 @@
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { LazyStore } from "@tauri-apps/plugin-store";
+import { DEFAULT_ENABLED_IDS } from "@/lib/llm-services";
 import type { AppSettings } from "@/types/settings";
 
 const store = new LazyStore("settings.json");
@@ -19,6 +20,8 @@ async function getDefaults(): Promise<AppSettings> {
     fontSize: 14,
     language: "en",
     onboardingComplete: false,
+    enabledLlmIds: DEFAULT_ENABLED_IDS,
+    customLlmServices: [],
   };
 }
 
@@ -31,6 +34,8 @@ export async function loadSettings(): Promise<AppSettings> {
     fontSize,
     language,
     onboardingComplete,
+    enabledLlmIds,
+    customLlmServices,
   ] = await Promise.all([
     getDefaults(),
     store.get<string>("promptDir"),
@@ -39,6 +44,8 @@ export async function loadSettings(): Promise<AppSettings> {
     store.get<AppSettings["fontSize"]>("fontSize"),
     store.get<AppSettings["language"]>("language"),
     store.get<boolean>("onboardingComplete"),
+    store.get<string[]>("enabledLlmIds"),
+    store.get<AppSettings["customLlmServices"]>("customLlmServices"),
   ]);
 
   return {
@@ -48,6 +55,8 @@ export async function loadSettings(): Promise<AppSettings> {
     fontSize: fontSize ?? defaults.fontSize,
     language: language ?? defaults.language,
     onboardingComplete: onboardingComplete ?? defaults.onboardingComplete,
+    enabledLlmIds: enabledLlmIds ?? defaults.enabledLlmIds,
+    customLlmServices: customLlmServices ?? defaults.customLlmServices,
   };
 }
 
@@ -58,5 +67,7 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
   await store.set("fontSize", settings.fontSize);
   await store.set("language", settings.language);
   await store.set("onboardingComplete", settings.onboardingComplete);
+  await store.set("enabledLlmIds", settings.enabledLlmIds);
+  await store.set("customLlmServices", settings.customLlmServices);
   await store.save();
 }

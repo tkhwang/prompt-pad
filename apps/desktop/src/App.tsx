@@ -1,6 +1,6 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { open } from "@tauri-apps/plugin-shell";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { EditorPanel } from "@/components/Editor/EditorPanel";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
@@ -29,7 +29,7 @@ import { useSettings } from "@/hooks/useSettings";
 import type { Language } from "@/i18n";
 import { I18nProvider, useTranslation } from "@/i18n/I18nProvider";
 import type { LlmService } from "@/lib/llm-services";
-import { buildServiceUrl } from "@/lib/llm-services";
+import { buildServiceUrl, PRESET_LLM_SERVICES } from "@/lib/llm-services";
 import { extractVariables, substituteVariables } from "@/lib/template";
 import { generateTitle } from "@/lib/title-generator";
 import { cn } from "@/lib/utils";
@@ -323,6 +323,12 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     updateSettings({ onboardingComplete: false });
   }, [updateSettings]);
 
+  const enabledServices = useMemo(() => {
+    if (!settings) return [];
+    const allServices = [...PRESET_LLM_SERVICES, ...settings.customLlmServices];
+    return allServices.filter((s) => settings.enabledLlmIds.includes(s.id));
+  }, [settings]);
+
   const handleTitleEnter = useCallback(() => {
     if (!editingPrompt) return;
     shouldFocusBodyRef.current = true;
@@ -436,6 +442,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         copied={copied}
         hasPrompt={!!editingPrompt}
         topicPanelOpen={topicPanelOpen}
+        enabledServices={enabledServices}
       />
 
       {/* Modals */}

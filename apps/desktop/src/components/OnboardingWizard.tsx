@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { Language, TranslationKey } from "@/i18n";
 import { LANGUAGE_OPTIONS } from "@/i18n";
 import { useTranslation } from "@/i18n/I18nProvider";
+import { DEFAULT_ENABLED_IDS, PRESET_LLM_SERVICES } from "@/lib/llm-services";
 import { THEME_IDS, THEMES } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 import type { AppSettings, ColorTheme, ThemeId } from "@/types/settings";
@@ -16,7 +17,7 @@ interface OnboardingWizardProps {
   onThemePreview: (partial: Partial<AppSettings>) => void;
 }
 
-const STEP_COUNT = 5;
+const STEP_COUNT = 6;
 
 function OnboardingThemeCard({
   themeId,
@@ -111,6 +112,9 @@ export function OnboardingWizard({
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
+  const [enabledLlmIds, setEnabledLlmIds] = useState<string[]>(
+    defaultSettings.enabledLlmIds ?? DEFAULT_ENABLED_IDS,
+  );
 
   const handleBrowse = async () => {
     const selected = await open({
@@ -129,8 +133,14 @@ export function OnboardingWizard({
     onLanguageChange(lang);
   };
 
+  const toggleLlmService = (id: string) => {
+    setEnabledLlmIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
   const handleFinish = () => {
-    onComplete(settings);
+    onComplete({ ...settings, enabledLlmIds });
   };
 
   return (
@@ -335,6 +345,44 @@ export function OnboardingWizard({
                 >
                   {t("onboarding.font_sample")}
                 </span>
+              </div>
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">
+                {t("onboarding.llm_title")}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t("onboarding.llm_description")}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {PRESET_LLM_SERVICES.map((service) => {
+                  const selected = enabledLlmIds.includes(service.id);
+                  return (
+                    <button
+                      type="button"
+                      key={service.id}
+                      onClick={() => toggleLlmService(service.id)}
+                      className={cn(
+                        "relative flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-colors",
+                        selected
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50",
+                      )}
+                    >
+                      {selected && (
+                        <div className="absolute top-1.5 right-1.5 rounded-full bg-primary p-0.5">
+                          <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                        </div>
+                      )}
+                      <span className="text-sm font-medium">
+                        {service.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

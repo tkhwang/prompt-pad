@@ -1,4 +1,5 @@
 import type { Language } from "@/i18n/types";
+import type { LlmService } from "@/lib/llm-services";
 
 export type ColorTheme = "light" | "dark" | "system";
 
@@ -11,4 +12,6 @@ export interface AppSettings {
   fontSize: number;
   language: Language;
   onboardingComplete: boolean;
+  enabledLlmIds: string[];
+  customLlmServices: LlmService[];
 }

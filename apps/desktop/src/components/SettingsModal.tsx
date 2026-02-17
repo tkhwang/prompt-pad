@@ -1,19 +1,28 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { Check, Palette, RotateCcw, Settings2 } from "lucide-react";
+import {
+  Check,
+  Palette,
+  RotateCcw,
+  Send,
+  Settings2,
+  Trash2,
+} from "lucide-react";
 import type { ComponentType } from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
 import type { TranslationKey } from "@/i18n";
 import { LANGUAGE_OPTIONS } from "@/i18n";
 import { useTranslation } from "@/i18n/I18nProvider";
+import { type LlmService, PRESET_LLM_SERVICES } from "@/lib/llm-services";
 import { THEME_IDS, THEMES } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 import type { AppSettings, ColorTheme, ThemeId } from "@/types/settings";
 
-type SettingsCategory = "general" | "appearance";
+type SettingsCategory = "general" | "appearance" | "llm";
 
 interface SettingsModalProps {
   open: boolean;
@@ -40,11 +49,13 @@ const CATEGORIES: {
     labelKey: "settings.category_appearance",
     icon: Palette,
   },
+  { id: "llm", labelKey: "settings.category_llm", icon: Send },
 ];
 
 const CATEGORY_LABEL: Record<SettingsCategory, TranslationKey> = {
   general: "settings.category_general",
   appearance: "settings.category_appearance",
+  llm: "settings.category_llm",
 };
 
 function SettingRow({
@@ -201,6 +212,8 @@ export function SettingsModal({
   const { t } = useTranslation();
   const [dir, setDir] = useState(settings.promptDir);
   const [category, setCategory] = useState<SettingsCategory>("general");
+  const [customLabel, setCustomLabel] = useState("");
+  const [customUrl, setCustomUrl] = useState("");
 
   const handleBrowse = async () => {
     const selected = await open({
@@ -396,6 +409,133 @@ export function SettingsModal({
                       </span>
                     </div>
                   </SettingRow>
+                </div>
+              )}
+
+              {category === "llm" && (
+                <div className="mt-4 space-y-4">
+                  <div className="space-y-0.5">
+                    <p className="text-xs text-muted-foreground">
+                      {t("settings.llm_services_description")}
+                    </p>
+                  </div>
+
+                  {/* Preset services */}
+                  <div className="divide-y divide-border">
+                    {PRESET_LLM_SERVICES.map((service) => (
+                      <div
+                        key={service.id}
+                        className="flex items-center justify-between py-2.5"
+                      >
+                        <span className="text-sm">{service.label}</span>
+                        <Switch
+                          checked={settings.enabledLlmIds.includes(service.id)}
+                          onCheckedChange={(checked) => {
+                            const ids = checked
+                              ? [...settings.enabledLlmIds, service.id]
+                              : settings.enabledLlmIds.filter(
+                                  (id) => id !== service.id,
+                                );
+                            onUpdate({ enabledLlmIds: ids });
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Custom services */}
+                  {settings.customLlmServices.length > 0 && (
+                    <div className="divide-y divide-border">
+                      {settings.customLlmServices.map((service) => (
+                        <div
+                          key={service.id}
+                          className="flex items-center justify-between py-2.5"
+                        >
+                          <div className="flex-1 min-w-0 pr-2">
+                            <span className="text-sm">{service.label}</span>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {service.url}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={settings.enabledLlmIds.includes(
+                                service.id,
+                              )}
+                              onCheckedChange={(checked) => {
+                                const ids = checked
+                                  ? [...settings.enabledLlmIds, service.id]
+                                  : settings.enabledLlmIds.filter(
+                                      (id) => id !== service.id,
+                                    );
+                                onUpdate({ enabledLlmIds: ids });
+                              }}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={() => {
+                                onUpdate({
+                                  customLlmServices:
+                                    settings.customLlmServices.filter(
+                                      (s) => s.id !== service.id,
+                                    ),
+                                  enabledLlmIds: settings.enabledLlmIds.filter(
+                                    (id) => id !== service.id,
+                                  ),
+                                });
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add custom service form */}
+                  <div className="space-y-2 pt-2 border-t border-border">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder={t("settings.llm_custom_label")}
+                        value={customLabel}
+                        onChange={(e) => setCustomLabel(e.target.value)}
+                        className="flex-1 h-8 text-sm"
+                      />
+                      <Input
+                        placeholder={t("settings.llm_custom_url")}
+                        value={customUrl}
+                        onChange={(e) => setCustomUrl(e.target.value)}
+                        className="flex-1 h-8 text-sm"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!customLabel.trim() || !customUrl.trim()}
+                        onClick={() => {
+                          const id = `custom-${Date.now()}`;
+                          const newService: LlmService = {
+                            id,
+                            label: customLabel.trim(),
+                            url: customUrl.trim(),
+                            isCustom: true,
+                          };
+                          onUpdate({
+                            customLlmServices: [
+                              ...settings.customLlmServices,
+                              newService,
+                            ],
+                            enabledLlmIds: [...settings.enabledLlmIds, id],
+                          });
+                          setCustomLabel("");
+                          setCustomUrl("");
+                        }}
+                      >
+                        {t("settings.llm_custom_add")}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

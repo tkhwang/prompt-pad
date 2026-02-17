@@ -25,6 +25,8 @@ export const en = {
     font_title: "Choose your font size",
     font_description: "Select the font size for the prompt editor.",
     font_sample: "Aa Bb Cc",
+    llm_title: "Choose your LLM services",
+    llm_description: "Select the services you'd like in the Send To menu.",
     back: "Back",
     next: "Next",
     finish: "Get Started",
@@ -53,6 +55,14 @@ export const en = {
     language_description: "Select the interface language.",
     close: "Close",
     browse_dialog_title: "Select Prompt Storage Directory",
+    category_llm: "LLM Services",
+    llm_services_label: "LLM Services",
+    llm_services_description:
+      "Choose which LLM services appear in the Send To menu.",
+    llm_custom_add: "Add",
+    llm_custom_label: "Service Name",
+    llm_custom_url: "URL",
+    llm_custom_delete: "Delete",
   },
 
   theme: {

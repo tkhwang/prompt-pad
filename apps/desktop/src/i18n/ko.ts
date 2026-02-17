@@ -31,6 +31,8 @@ export const ko: DeepStringify<typeof en> = {
     font_title: "글꼴 크기를 선택하세요",
     font_description: "프롬프트 에디터에 사용할 글꼴 크기를 선택합니다.",
     font_sample: "가나다라",
+    llm_title: "평소 자주 사용하는 LLM 서비스를 선택하세요",
+    llm_description: "Send To 메뉴에 표시할 서비스를 선택합니다.",
     back: "이전",
     next: "다음",
     finish: "시작하기",
@@ -58,6 +60,13 @@ export const ko: DeepStringify<typeof en> = {
     language_description: "인터페이스 언어를 선택합니다.",
     close: "닫기",
     browse_dialog_title: "프롬프트 저장 폴더 선택",
+    category_llm: "LLM 서비스",
+    llm_services_label: "LLM 서비스",
+    llm_services_description: "Send To 메뉴에 표시할 LLM 서비스를 선택합니다.",
+    llm_custom_add: "추가",
+    llm_custom_label: "서비스 이름",
+    llm_custom_url: "URL",
+    llm_custom_delete: "삭제",
   },
 
   theme: {
