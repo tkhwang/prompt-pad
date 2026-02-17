@@ -6,7 +6,7 @@ type DeepStringify<T> = {
 
 export const ko: DeepStringify<typeof en> = {
   app: {
-    title: "Prompt Pad",
+    title: "PromptPad",
     loading: "로딩 중...",
     loading_prompts: "프롬프트 로딩 중...",
   },
@@ -16,7 +16,7 @@ export const ko: DeepStringify<typeof en> = {
   },
 
   onboarding: {
-    welcome_title: "Prompt Pad에 오신 것을 환영합니다",
+    welcome_title: "PromptPad에 오신 것을 환영합니다",
     welcome_subtitle: "몇 가지 간단한 설정을 진행합니다.",
     welcome_hint: "모든 설정은 나중에 설정에서 변경할 수 있습니다.",
     language_title: "언어를 선택하세요",
@@ -111,7 +111,7 @@ export const ko: DeepStringify<typeof en> = {
     empty: "프롬프트를 선택하거나 새로 만드세요",
     placeholder_title: "프롬프트 제목...",
     placeholder_body:
-      "여기에 프롬프트를 마크다운 형식으로 작성하세요...\n\n---  를 사용하여 블록을 구분할 수 있습니다.\n✏️ 연필 아이콘으로 편집, 👁️ 눈 아이콘으로 미리보기 전환\n{{variableName}} 형식으로 템플릿 변수 사용 가능\n복사(▲) 버튼으로 원하는 LLM 웹서비스에 바로 전송",
+      "여기에 프롬프트를 마크다운 형식으로 작성하세요.\n\n---  를 사용하여 블록으로 구분할 수 있습니다.\n\n{{variableName}} 형식으로 템플릿 변수 사용 가능\n\n복사(▲) 버튼으로 원하는 LLM 웹서비스에 바로 전송\n\n✏️ 연필 아이콘으로 편집, 👁️ 눈 아이콘으로 미리보기 전환",
     tag_placeholder: "태그 추가...",
     copy: "복사",
     copyAll: "전체 복사",

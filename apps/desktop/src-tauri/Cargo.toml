@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "A prompt editor for AI LLMs"
 authors = ["Taekeun Hwang"]
 edition = "2024"
+license = "MIT"
 
 [lib]
 name = "prompt_pad_lib"

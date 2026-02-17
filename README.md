@@ -1,4 +1,4 @@
-# Prompt Pad
+# PromptPad
 
 A desktop app for managing AI prompt templates. Prompts are stored as plain Markdown files on your filesystem — no cloud, no lock-in.
 
