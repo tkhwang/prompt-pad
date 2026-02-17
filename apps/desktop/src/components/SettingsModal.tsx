@@ -514,7 +514,7 @@ export function SettingsModal({
                         size="sm"
                         disabled={!customLabel.trim() || !customUrl.trim()}
                         onClick={() => {
-                          const id = `custom-${Date.now()}`;
+                          const id = `custom-${crypto.randomUUID()}`;
                           const newService: LlmService = {
                             id,
                             label: customLabel.trim(),
