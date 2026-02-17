@@ -6,7 +6,7 @@ interface TopicGroupProps {
   name: string;
   prompts: Prompt[];
   selectedId: string | null;
-  viewMode: "simple" | "detail";
+  viewMode: "compact" | "cozy" | "detailed";
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
   onSelectTopic: (topic: string) => void;

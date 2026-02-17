@@ -1,4 +1,4 @@
-import { Check, ChevronUp, Copy, ExternalLink, Settings } from "lucide-react";
+import { ChevronUp, Copy, ExternalLink, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "@/i18n/I18nProvider";
-import { LLM_SERVICES } from "@/lib/llm-services";
+import type { LlmService } from "@/lib/llm-services";
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
@@ -22,10 +22,11 @@ interface StatusBarProps {
   onNewTopic: () => void;
   onSettingsOpen: () => void;
   onCopy: () => void;
-  onSendTo: (url: string) => void;
-  copied: boolean;
+  onSendTo: (service: LlmService) => void;
   hasPrompt: boolean;
+  hasBody: boolean;
   topicPanelOpen: boolean;
+  enabledServices: LlmService[];
 }
 
 export function StatusBar({
@@ -34,9 +35,10 @@ export function StatusBar({
   onSettingsOpen,
   onCopy,
   onSendTo,
-  copied,
   hasPrompt,
+  hasBody,
   topicPanelOpen,
+  enabledServices,
 }: StatusBarProps) {
   const { t } = useTranslation();
 
@@ -80,19 +82,11 @@ export function StatusBar({
               variant="default"
               size="sm"
               className="rounded-r-none min-w-20"
+              disabled={!hasBody}
               onClick={onCopy}
             >
-              {copied ? (
-                <>
-                  <Check className="h-3.5 w-3.5" />
-                  {t("editor.copied")}
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" />
-                  {t("editor.copy")}
-                </>
-              )}
+              <Copy className="h-3.5 w-3.5" />
+              {t("editor.copyAll")}
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -100,15 +94,16 @@ export function StatusBar({
                   variant="default"
                   size="sm"
                   className="rounded-l-none border-l border-primary-foreground/20 px-1.5"
+                  disabled={!hasBody}
                 >
                   <ChevronUp className="h-3.5 w-3.5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" side="top">
-                {LLM_SERVICES.map((service) => (
+                {enabledServices.map((service) => (
                   <DropdownMenuItem
                     key={service.id}
-                    onClick={() => onSendTo(service.url)}
+                    onClick={() => onSendTo(service)}
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     {t("editor.sendTo", { service: service.label })}

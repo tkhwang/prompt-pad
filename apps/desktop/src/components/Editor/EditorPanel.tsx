@@ -1,4 +1,4 @@
-import { Eye, Pencil, X } from "lucide-react";
+import { Eye, MessageSquareText, Pencil, Text, X } from "lucide-react";
 import {
   type RefObject,
   useCallback,
@@ -7,14 +7,16 @@ import {
   useRef,
   useState,
 } from "react";
+import { BlockCard, type ViewStyle } from "@/components/Editor/BlockCard";
 import { Editor } from "@/components/Editor/Editor";
-import { MarkdownPreview } from "@/components/Editor/MarkdownPreview";
 import { TemplatePanel } from "@/components/Editor/TemplatePanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { BLOCK_SEPARATOR } from "@/consts";
 import { useTranslation } from "@/i18n/I18nProvider";
+import type { LlmService } from "@/lib/llm-services";
 import { extractVariables, substituteVariables } from "@/lib/template";
 import type { Prompt } from "@/types/prompt";
 
@@ -26,6 +28,8 @@ interface EditorPanelProps {
   titleRef?: RefObject<HTMLInputElement | null>;
   bodyRef?: RefObject<HTMLTextAreaElement | null>;
   onTitleEnter?: () => void;
+  enabledServices: LlmService[];
+  onSendTo: (service: LlmService, content: string) => void;
 }
 
 export function EditorPanel({
@@ -36,6 +40,8 @@ export function EditorPanel({
   titleRef,
   bodyRef,
   onTitleEnter,
+  enabledServices,
+  onSendTo,
 }: EditorPanelProps) {
   const { t } = useTranslation();
   const body = prompt?.body ?? "";
@@ -79,6 +85,7 @@ export function EditorPanel({
   );
 
   const [tagInput, setTagInput] = useState("");
+  const [viewStyle, setViewStyle] = useState<ViewStyle>("chat");
 
   const handleAddTag = useCallback(
     (value: string) => {
@@ -149,68 +156,104 @@ export function EditorPanel({
         </Button>
       </div>
 
-      {/* Tags row */}
-      {(prompt.tags.length > 0 || editorMode === "edit") && (
-        <div className="flex items-center gap-1.5 px-5 py-1.5 border-b border-border/40 flex-wrap">
-          {prompt.tags.map((tag) => (
-            <Badge
-              key={tag}
-              className="text-xs gap-1 pr-1 bg-primary/15 text-primary border-transparent"
-            >
-              {tag}
-              {editorMode === "edit" && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTag(tag)}
-                  className="ml-0.5 hover:text-destructive transition-colors"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-            </Badge>
-          ))}
-          {editorMode === "edit" && (
-            <input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddTag(tagInput);
-                } else if (
-                  e.key === "Backspace" &&
-                  !tagInput &&
-                  prompt.tags.length > 0
-                ) {
-                  handleRemoveTag(prompt.tags[prompt.tags.length - 1]);
-                }
-              }}
-              onBlur={() => handleAddTag(tagInput)}
-              placeholder={t("editor.tag_placeholder")}
-              className="text-xs bg-transparent outline-none min-w-[80px] flex-1 text-muted-foreground placeholder:text-muted-foreground/50"
-            />
-          )}
-        </div>
-      )}
+      {/* Tags row — always rendered for consistent header height */}
+      <div className="flex items-center gap-1.5 px-5 py-1.5 border-b border-border/40 flex-wrap min-h-8">
+        {prompt.tags.map((tag) => (
+          <Badge
+            key={tag}
+            className="text-xs gap-1 pr-1 bg-primary/15 text-primary border-transparent"
+          >
+            {tag}
+            {editorMode === "edit" && (
+              <button
+                type="button"
+                onClick={() => handleRemoveTag(tag)}
+                className="ml-0.5 hover:text-destructive transition-colors"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </Badge>
+        ))}
+        {editorMode === "edit" && (
+          <input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddTag(tagInput);
+              } else if (
+                e.key === "Backspace" &&
+                !tagInput &&
+                prompt.tags.length > 0
+              ) {
+                handleRemoveTag(prompt.tags[prompt.tags.length - 1]);
+              }
+            }}
+            onBlur={() => handleAddTag(tagInput)}
+            placeholder={t("editor.tag_placeholder")}
+            className="text-xs bg-transparent outline-none min-w-[80px] flex-1 text-muted-foreground placeholder:text-muted-foreground/50"
+          />
+        )}
+      </div>
 
       {/* Main content: Editor (left) | TemplatePanel (right) */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left: Editor */}
         <div
-          className={`flex flex-1 flex-col min-w-0 ${editorMode === "view" ? "bg-muted/50" : ""}`}
+          className={`flex flex-1 flex-col min-w-0 ${editorMode === "view" && viewStyle === "markdown" ? "bg-muted/50" : ""}`}
         >
           {editorMode === "edit" ? (
             <Editor prompt={prompt} onUpdate={onUpdate} bodyRef={bodyRef} />
           ) : (
-            <ScrollArea className="flex-1 min-h-0 px-5 py-4">
-              <MarkdownPreview
-                content={
-                  hasVariables
+            <>
+              {/* View style toggle — matches MarkdownToolbar height */}
+              <div className="flex items-center justify-end px-5 py-1.5 border-b border-border/60">
+                <div className="flex items-center h-6 rounded-md border border-border/60 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setViewStyle("markdown")}
+                    className={`flex items-center justify-center h-full px-2 transition-colors ${
+                      viewStyle === "markdown"
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <Text className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewStyle("chat")}
+                    className={`flex items-center justify-center h-full px-2 border-l border-border/60 transition-colors ${
+                      viewStyle === "chat"
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <MessageSquareText className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+              <ScrollArea className="flex-1 min-h-0 px-5 py-4">
+                <div className="flex flex-col gap-3">
+                  {(hasVariables
                     ? substituteVariables(prompt.body, templateValues)
                     : prompt.body
-                }
-              />
-            </ScrollArea>
+                  )
+                    .split(BLOCK_SEPARATOR)
+                    .map((block, index) => (
+                      <BlockCard
+                        key={`${prompt.id}-block-${index}`}
+                        content={block}
+                        viewStyle={viewStyle}
+                        enabledServices={enabledServices}
+                        onSendTo={onSendTo}
+                      />
+                    ))}
+                </div>
+              </ScrollArea>
+            </>
           )}
         </div>
 

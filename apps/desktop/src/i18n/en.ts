@@ -25,8 +25,11 @@ export const en = {
     font_title: "Choose your font size",
     font_description: "Select the font size for the prompt editor.",
     font_sample: "Aa Bb Cc",
+    llm_title: "Choose your LLM services",
+    llm_description: "Select the services you'd like in the Send To menu.",
     back: "Back",
     next: "Next",
+    skip: "Skip",
     finish: "Get Started",
     browse_dialog_title: "Select Prompt Storage Directory",
   },
@@ -53,6 +56,14 @@ export const en = {
     language_description: "Select the interface language.",
     close: "Close",
     browse_dialog_title: "Select Prompt Storage Directory",
+    category_llm: "LLM Services",
+    llm_services_label: "LLM Services",
+    llm_services_description:
+      "Choose which LLM services appear in the Send To menu.",
+    llm_custom_add: "Add",
+    llm_custom_label: "Service Name",
+    llm_custom_url: "URL",
+    llm_custom_delete: "Delete",
   },
 
   theme: {
@@ -96,9 +107,10 @@ export const en = {
     empty: "Select a prompt or create a new one",
     placeholder_title: "Prompt title...",
     placeholder_body:
-      "Write your prompt here... Use {{variable_name}} for template variables.",
+      "Write your prompt in markdown format here...\n\nUse ---  to separate blocks.\n✏️ Pencil icon to edit, 👁️ Eye icon to preview\nUse {{variableName}} for template variables\nCopy (▲) button to send to your favorite LLM service",
     tag_placeholder: "Add tag...",
     copy: "Copy",
+    copyAll: "Copy All",
     copied: "Copied!",
     sendTo: "{{service}}",
     view: "View",

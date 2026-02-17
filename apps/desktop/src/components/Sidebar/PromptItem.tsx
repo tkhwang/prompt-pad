@@ -19,7 +19,7 @@ import type { Prompt } from "@/types/prompt";
 interface PromptItemProps {
   prompt: Prompt;
   isSelected: boolean;
-  viewMode: "simple" | "detail";
+  viewMode: "compact" | "cozy" | "detailed";
   onClick: () => void;
   onDelete: () => void;
 }
@@ -46,7 +46,8 @@ export function PromptItem({
           setShowDeleteDialog(true);
         }}
         className={cn(
-          "w-full text-left px-4 py-2.5 transition-all duration-150 border-l-2",
+          "w-full text-left px-4 transition-all duration-150 border-l-2 border-b border-border/40",
+          viewMode === "compact" ? "py-1.5" : "py-2.5",
           "hover:bg-accent/60",
           isSelected
             ? "bg-accent border-l-primary pl-[14px]"
@@ -62,13 +63,13 @@ export function PromptItem({
             </span>
           )}
         </div>
-        {viewMode === "detail" && preview && (
-          <div className="text-xs text-muted-foreground truncate mt-0.5">
+        {viewMode === "detailed" && (
+          <div className="text-xs text-muted-foreground truncate mt-0.5 h-4">
             {preview}
           </div>
         )}
-        {viewMode === "detail" && prompt.tags.length > 0 && (
-          <div className="flex items-center gap-1 mt-1 overflow-hidden">
+        {viewMode !== "compact" && (
+          <div className="flex items-center gap-1 mt-1 overflow-hidden h-4">
             {prompt.tags.slice(0, 3).map((tag) => (
               <Badge
                 key={tag}

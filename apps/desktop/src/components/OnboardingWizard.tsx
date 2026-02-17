@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { Language, TranslationKey } from "@/i18n";
 import { LANGUAGE_OPTIONS } from "@/i18n";
 import { useTranslation } from "@/i18n/I18nProvider";
+import { DEFAULT_ENABLED_IDS, PRESET_LLM_SERVICES } from "@/lib/llm-services";
 import { THEME_IDS, THEMES } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 import type { AppSettings, ColorTheme, ThemeId } from "@/types/settings";
@@ -16,7 +17,8 @@ interface OnboardingWizardProps {
   onThemePreview: (partial: Partial<AppSettings>) => void;
 }
 
-const STEP_COUNT = 5;
+const STEP_COUNT = 6;
+const FIRST_OPTIONAL_STEP = 3;
 
 function OnboardingThemeCard({
   themeId,
@@ -111,6 +113,9 @@ export function OnboardingWizard({
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
+  const [enabledLlmIds, setEnabledLlmIds] = useState<string[]>(
+    defaultSettings.enabledLlmIds ?? DEFAULT_ENABLED_IDS,
+  );
 
   const handleBrowse = async () => {
     const selected = await open({
@@ -129,8 +134,14 @@ export function OnboardingWizard({
     onLanguageChange(lang);
   };
 
+  const toggleLlmService = (id: string) => {
+    setEnabledLlmIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
   const handleFinish = () => {
-    onComplete(settings);
+    onComplete({ ...settings, enabledLlmIds });
   };
 
   return (
@@ -155,19 +166,29 @@ export function OnboardingWizard({
             // biome-ignore lint/suspicious/noArrayIndexKey: static step indicators never reorder
             <div key={i} className="flex items-center gap-2">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
                   i === step
                     ? "bg-primary text-primary-foreground"
                     : i < step
                       ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground"
-                }`}
+                      : "bg-muted text-muted-foreground",
+                  i >= FIRST_OPTIONAL_STEP &&
+                    i >= step &&
+                    "border-2 border-dashed border-muted-foreground/40",
+                )}
               >
                 {i + 1}
               </div>
               {i < STEP_COUNT - 1 && (
                 <div
-                  className={`w-8 h-px ${i < step ? "bg-primary" : "bg-border"}`}
+                  className={cn(
+                    "w-8 h-px",
+                    i < step ? "bg-primary" : "bg-border",
+                    i >= FIRST_OPTIONAL_STEP - 1 &&
+                      i >= step &&
+                      "border-t border-dashed bg-transparent border-border",
+                  )}
                 />
               )}
             </div>
@@ -176,6 +197,7 @@ export function OnboardingWizard({
 
         {/* Step content */}
         <div className="min-h-[200px]">
+          {/* Required: Step 0 — Language */}
           {step === 0 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
@@ -204,6 +226,7 @@ export function OnboardingWizard({
             </div>
           )}
 
+          {/* Required: Step 1 — Folder */}
           {step === 1 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
@@ -224,7 +247,47 @@ export function OnboardingWizard({
             </div>
           )}
 
+          {/* Required: Step 2 — LLM Services */}
           {step === 2 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">
+                {t("onboarding.llm_title")}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t("onboarding.llm_description")}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {PRESET_LLM_SERVICES.map((service) => {
+                  const selected = enabledLlmIds.includes(service.id);
+                  return (
+                    <button
+                      type="button"
+                      key={service.id}
+                      onClick={() => toggleLlmService(service.id)}
+                      className={cn(
+                        "relative flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-colors",
+                        selected
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50",
+                      )}
+                    >
+                      {selected && (
+                        <div className="absolute top-1.5 right-1.5 rounded-full bg-primary p-0.5">
+                          <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                        </div>
+                      )}
+                      <span className="text-sm font-medium">
+                        {service.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Optional: Step 3 — Theme mode */}
+          {step === 3 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
                 {t("onboarding.theme_title")}
@@ -271,7 +334,8 @@ export function OnboardingWizard({
             </div>
           )}
 
-          {step === 3 && (
+          {/* Optional: Step 4 — Color theme */}
+          {step === 4 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
                 {t("onboarding.color_theme_title")}
@@ -297,7 +361,8 @@ export function OnboardingWizard({
             </div>
           )}
 
-          {step === 4 && (
+          {/* Optional: Step 5 — Font size */}
+          {step === 5 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
                 {t("onboarding.font_title")}
@@ -349,13 +414,20 @@ export function OnboardingWizard({
           >
             {t("onboarding.back")}
           </Button>
-          {step < STEP_COUNT - 1 ? (
-            <Button onClick={() => setStep((s) => s + 1)}>
-              {t("onboarding.next")}
-            </Button>
-          ) : (
-            <Button onClick={handleFinish}>{t("onboarding.finish")}</Button>
-          )}
+          <div className="flex gap-2">
+            {step >= 3 && step < STEP_COUNT - 1 && (
+              <Button variant="ghost" onClick={handleFinish}>
+                {t("onboarding.skip")}
+              </Button>
+            )}
+            {step < STEP_COUNT - 1 ? (
+              <Button onClick={() => setStep((s) => s + 1)}>
+                {t("onboarding.next")}
+              </Button>
+            ) : (
+              <Button onClick={handleFinish}>{t("onboarding.finish")}</Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

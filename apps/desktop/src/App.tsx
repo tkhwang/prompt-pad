@@ -1,7 +1,8 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { open } from "@tauri-apps/plugin-shell";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { toast } from "sonner";
 import { EditorPanel } from "@/components/Editor/EditorPanel";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { SettingsModal } from "@/components/SettingsModal";
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Toaster } from "@/components/ui/sonner";
 import { AUTO_SAVE_DELAY_MS } from "@/consts";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { usePrompts } from "@/hooks/usePrompts";
@@ -28,6 +30,8 @@ import { useSearch } from "@/hooks/useSearch";
 import { useSettings } from "@/hooks/useSettings";
 import type { Language } from "@/i18n";
 import { I18nProvider, useTranslation } from "@/i18n/I18nProvider";
+import type { LlmService } from "@/lib/llm-services";
+import { buildServiceUrl, PRESET_LLM_SERVICES } from "@/lib/llm-services";
 import { extractVariables, substituteVariables } from "@/lib/template";
 import { generateTitle } from "@/lib/title-generator";
 import { cn } from "@/lib/utils";
@@ -72,9 +76,10 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
 
   const [editingPrompt, setEditingPrompt] = useState(selectedPrompt);
   const [editorMode, setEditorMode] = useState<"view" | "edit">("view");
-  const [copied, setCopied] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"simple" | "detail">("detail");
+  const [viewMode, setViewMode] = useState<"compact" | "cozy" | "detailed">(
+    "cozy",
+  );
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [topicPanelOpen, setTopicPanelOpen] = useState(false);
   const [createTopicDialogOpen, setCreateTopicDialogOpen] = useState(false);
@@ -256,17 +261,37 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
             )
           : editingPrompt.body;
       await writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      toast.success(t("editor.copied"));
     }
-  }, [editingPrompt]);
+  }, [editingPrompt, t]);
 
   const handleSendTo = useCallback(
-    async (url: string) => {
-      await handleCopy();
+    async (service: LlmService) => {
+      if (!editingPrompt) return;
+      const variables = extractVariables(editingPrompt.body);
+      const text =
+        variables.length > 0
+          ? substituteVariables(
+              editingPrompt.body,
+              editingPrompt.templateValues ?? {},
+            )
+          : editingPrompt.body;
+      await writeText(text);
+      toast.success(t("editor.copied"));
+      const url = buildServiceUrl(service, text);
       await open(url);
     },
-    [handleCopy],
+    [editingPrompt, t],
+  );
+
+  const handleBlockSendTo = useCallback(
+    async (service: LlmService, content: string) => {
+      await writeText(content);
+      toast.success(t("editor.copied"));
+      const url = buildServiceUrl(service, content);
+      await open(url);
+    },
+    [t],
   );
 
   // Keyboard shortcuts
@@ -306,6 +331,12 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     setSettingsOpen(false);
     updateSettings({ onboardingComplete: false });
   }, [updateSettings]);
+
+  const enabledServices = useMemo(() => {
+    if (!settings) return [];
+    const allServices = [...PRESET_LLM_SERVICES, ...settings.customLlmServices];
+    return allServices.filter((s) => settings.enabledLlmIds.includes(s.id));
+  }, [settings]);
 
   const handleTitleEnter = useCallback(() => {
     if (!editingPrompt) return;
@@ -374,7 +405,13 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
               <SidebarToolbar
                 viewMode={viewMode}
                 onViewModeToggle={() =>
-                  setViewMode((v) => (v === "simple" ? "detail" : "simple"))
+                  setViewMode((v) =>
+                    v === "compact"
+                      ? "cozy"
+                      : v === "cozy"
+                        ? "detailed"
+                        : "compact",
+                  )
                 }
                 onNewPrompt={handleNewPrompt}
               />
@@ -399,6 +436,8 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
               titleRef={titleInputRef}
               bodyRef={bodyInputRef}
               onTitleEnter={handleTitleEnter}
+              enabledServices={enabledServices}
+              onSendTo={handleBlockSendTo}
             />
           </div>
         </div>
@@ -411,9 +450,10 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         onSettingsOpen={() => setSettingsOpen(true)}
         onCopy={handleCopy}
         onSendTo={handleSendTo}
-        copied={copied}
         hasPrompt={!!editingPrompt}
+        hasBody={!!editingPrompt?.body.trim()}
         topicPanelOpen={topicPanelOpen}
+        enabledServices={enabledServices}
       />
 
       {/* Modals */}
@@ -494,6 +534,7 @@ function App() {
   return (
     <I18nProvider language={language}>
       <AppContent onLanguageOverride={setLanguage} />
+      <Toaster />
     </I18nProvider>
   );
 }

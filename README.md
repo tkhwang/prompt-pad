@@ -96,6 +96,17 @@ pnpm build:backend    # nest build
 pnpm check            # Biome lint + format (auto-fix) across all packages
 ```
 
+### Release
+
+```bash
+pnpm release          # Interactive: pick version → update files → commit → tag → push
+pnpm release patch    # 0.1.0 → 0.1.1
+pnpm release minor    # 0.1.0 → 0.2.0
+pnpm release major    # 0.1.0 → 1.0.0
+```
+
+Updates version across all `package.json`, `Cargo.toml`, and `tauri.conf.json` in one step. Pushing a `v*` tag triggers the macOS build workflow.
+
 ## Tech Stack
 
 | Layer         | Technology                                                |

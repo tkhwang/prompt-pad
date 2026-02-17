@@ -12,7 +12,7 @@ interface SidebarProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
-  viewMode: "simple" | "detail";
+  viewMode: "compact" | "cozy" | "detailed";
   selectedTopic: string | null;
   onSelectTopic: (topic: string | null) => void;
 }
