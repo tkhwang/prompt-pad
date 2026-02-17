@@ -1,6 +1,21 @@
-export const LLM_SERVICES = [
-  { id: "chatgpt", label: "ChatGPT", url: "https://chatgpt.com" },
-  { id: "claude", label: "Claude", url: "https://claude.ai/new" },
-  { id: "gemini", label: "Gemini", url: "https://gemini.google.com/app" },
-  { id: "perplexity", label: "Perplexity", url: "https://www.perplexity.ai" },
-] as const;
+export interface LlmService {
+  id: string;
+  label: string;
+  url: string;
+  /** Query parameter name for pre-filling prompt content (e.g. "q") */
+  queryParam?: string;
+}
+
+export const LLM_SERVICES: readonly LlmService[] = [
+  { id: "chatgpt", label: "ChatGPT", url: "https://chatgpt.com", queryParam: "q" },
+  { id: "claude", label: "Claude", url: "https://claude.ai/new", queryParam: "q" },
+  { id: "gemini", label: "Gemini", url: "https://gemini.google.com/app", queryParam: "q" },
+  { id: "perplexity", label: "Perplexity", url: "https://www.perplexity.ai", queryParam: "q" },
+];
+
+export function buildServiceUrl(service: LlmService, prompt: string): string {
+  if (!service.queryParam || !prompt) return service.url;
+  const url = new URL(service.url);
+  url.searchParams.set(service.queryParam, prompt);
+  return url.toString();
+}

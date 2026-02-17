@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "@/i18n/I18nProvider";
-import { LLM_SERVICES } from "@/lib/llm-services";
+import { LLM_SERVICES, type LlmService } from "@/lib/llm-services";
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
@@ -22,7 +22,7 @@ interface StatusBarProps {
   onNewTopic: () => void;
   onSettingsOpen: () => void;
   onCopy: () => void;
-  onSendTo: (url: string) => void;
+  onSendTo: (service: LlmService) => void;
   copied: boolean;
   hasPrompt: boolean;
   topicPanelOpen: boolean;
@@ -108,7 +108,7 @@ export function StatusBar({
                 {LLM_SERVICES.map((service) => (
                   <DropdownMenuItem
                     key={service.id}
-                    onClick={() => onSendTo(service.url)}
+                    onClick={() => onSendTo(service)}
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     {t("editor.sendTo", { service: service.label })}
