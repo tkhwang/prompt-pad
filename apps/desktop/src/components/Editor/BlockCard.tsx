@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { COPIED_STATE_TIMEOUT_MS } from "@/consts";
 import { useTranslation } from "@/i18n/I18nProvider";
 import type { LlmService } from "@/lib/llm-services";
 
@@ -36,7 +37,7 @@ export function BlockCard({
     await writeText(content.trim());
     toast.success(t("editor.copied"));
     setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    setTimeout(() => setCopied(false), COPIED_STATE_TIMEOUT_MS);
   }, [content, t]);
 
   const isChat = viewStyle === "chat";
