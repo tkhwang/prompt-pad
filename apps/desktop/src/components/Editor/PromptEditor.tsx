@@ -17,7 +17,7 @@ export function PromptEditor({ prompt, onUpdate, bodyRef }: PromptEditorProps) {
         ref={bodyRef}
         value={prompt.body}
         onChange={(e) => onUpdate({ ...prompt, body: e.target.value })}
-        className="w-full h-full resize-none bg-transparent outline-none leading-relaxed text-foreground caret-primary placeholder:text-muted-foreground"
+        className="w-full h-full resize-none bg-transparent outline-none leading-relaxed text-foreground caret-primary placeholder:text-muted-foreground/40"
         style={{
           fontFamily: "var(--editor-font)",
           fontSize: "var(--editor-font-size)",

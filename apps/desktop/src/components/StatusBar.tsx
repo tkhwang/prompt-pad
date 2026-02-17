@@ -1,4 +1,4 @@
-import { Check, ChevronUp, Copy, ExternalLink, Settings } from "lucide-react";
+import { ChevronUp, Copy, ExternalLink, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,7 +23,6 @@ interface StatusBarProps {
   onSettingsOpen: () => void;
   onCopy: () => void;
   onSendTo: (service: LlmService) => void;
-  copied: boolean;
   hasPrompt: boolean;
   topicPanelOpen: boolean;
   enabledServices: LlmService[];
@@ -35,7 +34,6 @@ export function StatusBar({
   onSettingsOpen,
   onCopy,
   onSendTo,
-  copied,
   hasPrompt,
   topicPanelOpen,
   enabledServices,
@@ -84,17 +82,8 @@ export function StatusBar({
               className="rounded-r-none min-w-20"
               onClick={onCopy}
             >
-              {copied ? (
-                <>
-                  <Check className="h-3.5 w-3.5" />
-                  {t("editor.copied")}
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" />
-                  {t("editor.copy")}
-                </>
-              )}
+              <Copy className="h-3.5 w-3.5" />
+              {t("editor.copy")}
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

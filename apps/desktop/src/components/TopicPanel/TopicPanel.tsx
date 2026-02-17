@@ -246,7 +246,10 @@ export function TopicPanel({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("topic_panel.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               {t("topic_panel.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>

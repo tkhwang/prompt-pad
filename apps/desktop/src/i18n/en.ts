@@ -107,7 +107,7 @@ export const en = {
     empty: "Select a prompt or create a new one",
     placeholder_title: "Prompt title...",
     placeholder_body:
-      "Write your prompt here... Use {{variable_name}} for template variables.",
+      "Write your prompt here...\nUse {{variable_name}} for template variables.",
     tag_placeholder: "Add tag...",
     copy: "Copy",
     copied: "Copied!",
