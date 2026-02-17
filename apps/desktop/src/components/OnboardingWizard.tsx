@@ -18,6 +18,7 @@ interface OnboardingWizardProps {
 }
 
 const STEP_COUNT = 6;
+const FIRST_OPTIONAL_STEP = 3;
 
 function OnboardingThemeCard({
   themeId,
@@ -165,19 +166,29 @@ export function OnboardingWizard({
             // biome-ignore lint/suspicious/noArrayIndexKey: static step indicators never reorder
             <div key={i} className="flex items-center gap-2">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
                   i === step
                     ? "bg-primary text-primary-foreground"
                     : i < step
                       ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground"
-                }`}
+                      : "bg-muted text-muted-foreground",
+                  i >= FIRST_OPTIONAL_STEP &&
+                    i >= step &&
+                    "border-2 border-dashed border-muted-foreground/40",
+                )}
               >
                 {i + 1}
               </div>
               {i < STEP_COUNT - 1 && (
                 <div
-                  className={`w-8 h-px ${i < step ? "bg-primary" : "bg-border"}`}
+                  className={cn(
+                    "w-8 h-px",
+                    i < step ? "bg-primary" : "bg-border",
+                    i >= FIRST_OPTIONAL_STEP - 1 &&
+                      i >= step &&
+                      "border-t border-dashed bg-transparent border-border",
+                  )}
                 />
               )}
             </div>
