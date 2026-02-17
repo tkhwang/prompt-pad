@@ -111,9 +111,10 @@ export const ko: DeepStringify<typeof en> = {
     empty: "프롬프트를 선택하거나 새로 만드세요",
     placeholder_title: "프롬프트 제목...",
     placeholder_body:
-      "여기에 프롬프트를 작성하세요...\n{{variable_name}} 형식으로 템플릿 변수를 사용할 수 있습니다.",
+      "여기에 프롬프트를 마크다운 형식으로 작성하세요...\n\n---  를 사용하여 블록을 구분할 수 있습니다.\n✏️ 연필 아이콘으로 편집, 👁️ 눈 아이콘으로 미리보기 전환\n{{variableName}} 형식으로 템플릿 변수 사용 가능\n복사(▲) 버튼으로 원하는 LLM 웹서비스에 바로 전송",
     tag_placeholder: "태그 추가...",
     copy: "복사",
+    copyAll: "전체 복사",
     copied: "복사됨!",
     sendTo: "{{service}}",
     view: "보기",

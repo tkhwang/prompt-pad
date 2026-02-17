@@ -107,9 +107,10 @@ export const en = {
     empty: "Select a prompt or create a new one",
     placeholder_title: "Prompt title...",
     placeholder_body:
-      "Write your prompt here...\nUse {{variable_name}} for template variables.",
+      "Write your prompt in markdown format here...\n\nUse ---  to separate blocks.\n✏️ Pencil icon to edit, 👁️ Eye icon to preview\nUse {{variableName}} for template variables\nCopy (▲) button to send to your favorite LLM service",
     tag_placeholder: "Add tag...",
     copy: "Copy",
+    copyAll: "Copy All",
     copied: "Copied!",
     sendTo: "{{service}}",
     view: "View",

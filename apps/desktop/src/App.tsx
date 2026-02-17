@@ -284,6 +284,16 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     [editingPrompt, t],
   );
 
+  const handleBlockSendTo = useCallback(
+    async (service: LlmService, content: string) => {
+      await writeText(content);
+      toast.success(t("editor.copied"));
+      const url = buildServiceUrl(service, content);
+      await open(url);
+    },
+    [t],
+  );
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -426,6 +436,8 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
               titleRef={titleInputRef}
               bodyRef={bodyInputRef}
               onTitleEnter={handleTitleEnter}
+              enabledServices={enabledServices}
+              onSendTo={handleBlockSendTo}
             />
           </div>
         </div>
@@ -439,6 +451,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
         onCopy={handleCopy}
         onSendTo={handleSendTo}
         hasPrompt={!!editingPrompt}
+        hasBody={!!editingPrompt?.body.trim()}
         topicPanelOpen={topicPanelOpen}
         enabledServices={enabledServices}
       />

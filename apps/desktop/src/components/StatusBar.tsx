@@ -24,6 +24,7 @@ interface StatusBarProps {
   onCopy: () => void;
   onSendTo: (service: LlmService) => void;
   hasPrompt: boolean;
+  hasBody: boolean;
   topicPanelOpen: boolean;
   enabledServices: LlmService[];
 }
@@ -35,6 +36,7 @@ export function StatusBar({
   onCopy,
   onSendTo,
   hasPrompt,
+  hasBody,
   topicPanelOpen,
   enabledServices,
 }: StatusBarProps) {
@@ -80,10 +82,11 @@ export function StatusBar({
               variant="default"
               size="sm"
               className="rounded-r-none min-w-20"
+              disabled={!hasBody}
               onClick={onCopy}
             >
               <Copy className="h-3.5 w-3.5" />
-              {t("editor.copy")}
+              {t("editor.copyAll")}
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -91,6 +94,7 @@ export function StatusBar({
                   variant="default"
                   size="sm"
                   className="rounded-l-none border-l border-primary-foreground/20 px-1.5"
+                  disabled={!hasBody}
                 >
                   <ChevronUp className="h-3.5 w-3.5" />
                 </Button>

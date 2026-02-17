@@ -7,14 +7,16 @@ import {
   useRef,
   useState,
 } from "react";
+import { BlockCard } from "@/components/Editor/BlockCard";
 import { Editor } from "@/components/Editor/Editor";
-import { MarkdownPreview } from "@/components/Editor/MarkdownPreview";
 import { TemplatePanel } from "@/components/Editor/TemplatePanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { BLOCK_SEPARATOR } from "@/consts";
 import { useTranslation } from "@/i18n/I18nProvider";
+import type { LlmService } from "@/lib/llm-services";
 import { extractVariables, substituteVariables } from "@/lib/template";
 import type { Prompt } from "@/types/prompt";
 
@@ -26,6 +28,8 @@ interface EditorPanelProps {
   titleRef?: RefObject<HTMLInputElement | null>;
   bodyRef?: RefObject<HTMLTextAreaElement | null>;
   onTitleEnter?: () => void;
+  enabledServices: LlmService[];
+  onSendTo: (service: LlmService, content: string) => void;
 }
 
 export function EditorPanel({
@@ -36,6 +40,8 @@ export function EditorPanel({
   titleRef,
   bodyRef,
   onTitleEnter,
+  enabledServices,
+  onSendTo,
 }: EditorPanelProps) {
   const { t } = useTranslation();
   const body = prompt?.body ?? "";
@@ -206,13 +212,21 @@ export function EditorPanel({
                 <div className="h-6" />
               </div>
               <ScrollArea className="flex-1 min-h-0 px-5 py-4">
-                <MarkdownPreview
-                  content={
-                    hasVariables
-                      ? substituteVariables(prompt.body, templateValues)
-                      : prompt.body
-                  }
-                />
+                <div className="flex flex-col gap-3">
+                  {(hasVariables
+                    ? substituteVariables(prompt.body, templateValues)
+                    : prompt.body
+                  )
+                    .split(BLOCK_SEPARATOR)
+                    .map((block, index) => (
+                      <BlockCard
+                        key={`${prompt.id}-block-${index}`}
+                        content={block}
+                        enabledServices={enabledServices}
+                        onSendTo={onSendTo}
+                      />
+                    ))}
+                </div>
               </ScrollArea>
             </>
           )}
