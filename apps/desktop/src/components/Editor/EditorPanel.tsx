@@ -1,4 +1,4 @@
-import { Eye, Pencil, X } from "lucide-react";
+import { Eye, MessageSquareText, Pencil, Text, X } from "lucide-react";
 import {
   type RefObject,
   useCallback,
@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { BlockCard } from "@/components/Editor/BlockCard";
+import { BlockCard, type ViewStyle } from "@/components/Editor/BlockCard";
 import { Editor } from "@/components/Editor/Editor";
 import { TemplatePanel } from "@/components/Editor/TemplatePanel";
 import { Badge } from "@/components/ui/badge";
@@ -85,6 +85,7 @@ export function EditorPanel({
   );
 
   const [tagInput, setTagInput] = useState("");
+  const [viewStyle, setViewStyle] = useState<ViewStyle>("chat");
 
   const handleAddTag = useCallback(
     (value: string) => {
@@ -201,15 +202,38 @@ export function EditorPanel({
       <div className="flex flex-1 overflow-hidden">
         {/* Left: Editor */}
         <div
-          className={`flex flex-1 flex-col min-w-0 ${editorMode === "view" ? "bg-muted/50" : ""}`}
+          className={`flex flex-1 flex-col min-w-0 ${editorMode === "view" && viewStyle === "markdown" ? "bg-muted/50" : ""}`}
         >
           {editorMode === "edit" ? (
             <Editor prompt={prompt} onUpdate={onUpdate} bodyRef={bodyRef} />
           ) : (
             <>
-              {/* Spacer matching MarkdownToolbar height for consistent layout */}
-              <div className="px-5 py-1.5 border-b border-border/60">
-                <div className="h-6" />
+              {/* View style toggle — matches MarkdownToolbar height */}
+              <div className="flex items-center justify-end px-5 py-1.5 border-b border-border/60">
+                <div className="flex items-center h-6 rounded-md border border-border/60 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setViewStyle("markdown")}
+                    className={`flex items-center justify-center h-full px-2 transition-colors ${
+                      viewStyle === "markdown"
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <Text className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewStyle("chat")}
+                    className={`flex items-center justify-center h-full px-2 border-l border-border/60 transition-colors ${
+                      viewStyle === "chat"
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <MessageSquareText className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
               <ScrollArea className="flex-1 min-h-0 px-5 py-4">
                 <div className="flex flex-col gap-3">
@@ -222,6 +246,7 @@ export function EditorPanel({
                       <BlockCard
                         key={`${prompt.id}-block-${index}`}
                         content={block}
+                        viewStyle={viewStyle}
                         enabledServices={enabledServices}
                         onSendTo={onSendTo}
                       />
