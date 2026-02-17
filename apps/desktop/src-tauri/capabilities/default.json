@@ -8,31 +8,31 @@
     "fs:default",
     {
       "identifier": "fs:allow-exists",
-      "allow": [{ "path": "$APPDATA/**" }]
+      "allow": [{ "path": "$DOCUMENT/**" }]
     },
     {
       "identifier": "fs:allow-mkdir",
-      "allow": [{ "path": "$APPDATA/**" }]
+      "allow": [{ "path": "$DOCUMENT/**" }]
     },
     {
       "identifier": "fs:allow-remove",
-      "allow": [{ "path": "$APPDATA/**" }]
+      "allow": [{ "path": "$DOCUMENT/**" }]
     },
     {
       "identifier": "fs:allow-rename",
-      "allow": [{ "path": "$APPDATA/**" }]
+      "allow": [{ "path": "$DOCUMENT/**" }]
     },
     {
       "identifier": "fs:allow-read-dir",
-      "allow": [{ "path": "$APPDATA/**" }]
+      "allow": [{ "path": "$DOCUMENT/**" }]
     },
     {
       "identifier": "fs:allow-read-text-file",
-      "allow": [{ "path": "$APPDATA/**" }]
+      "allow": [{ "path": "$DOCUMENT/**" }]
     },
     {
       "identifier": "fs:allow-write-text-file",
-      "allow": [{ "path": "$APPDATA/**" }]
+      "allow": [{ "path": "$DOCUMENT/**" }]
     },
     "dialog:default",
     "dialog:allow-open",
