@@ -186,6 +186,7 @@ export function OnboardingWizard({
 
         {/* Step content */}
         <div className="min-h-[200px]">
+          {/* Required: Step 0 — Language */}
           {step === 0 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
@@ -214,6 +215,7 @@ export function OnboardingWizard({
             </div>
           )}
 
+          {/* Required: Step 1 — Folder */}
           {step === 1 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
@@ -234,7 +236,47 @@ export function OnboardingWizard({
             </div>
           )}
 
+          {/* Required: Step 2 — LLM Services */}
           {step === 2 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">
+                {t("onboarding.llm_title")}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t("onboarding.llm_description")}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {PRESET_LLM_SERVICES.map((service) => {
+                  const selected = enabledLlmIds.includes(service.id);
+                  return (
+                    <button
+                      type="button"
+                      key={service.id}
+                      onClick={() => toggleLlmService(service.id)}
+                      className={cn(
+                        "relative flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-colors",
+                        selected
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50",
+                      )}
+                    >
+                      {selected && (
+                        <div className="absolute top-1.5 right-1.5 rounded-full bg-primary p-0.5">
+                          <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                        </div>
+                      )}
+                      <span className="text-sm font-medium">
+                        {service.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Optional: Step 3 — Theme mode */}
+          {step === 3 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
                 {t("onboarding.theme_title")}
@@ -281,7 +323,8 @@ export function OnboardingWizard({
             </div>
           )}
 
-          {step === 3 && (
+          {/* Optional: Step 4 — Color theme */}
+          {step === 4 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
                 {t("onboarding.color_theme_title")}
@@ -307,7 +350,8 @@ export function OnboardingWizard({
             </div>
           )}
 
-          {step === 4 && (
+          {/* Optional: Step 5 — Font size */}
+          {step === 5 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
                 {t("onboarding.font_title")}
@@ -348,44 +392,6 @@ export function OnboardingWizard({
               </div>
             </div>
           )}
-
-          {step === 5 && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">
-                {t("onboarding.llm_title")}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {t("onboarding.llm_description")}
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                {PRESET_LLM_SERVICES.map((service) => {
-                  const selected = enabledLlmIds.includes(service.id);
-                  return (
-                    <button
-                      type="button"
-                      key={service.id}
-                      onClick={() => toggleLlmService(service.id)}
-                      className={cn(
-                        "relative flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-colors",
-                        selected
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50",
-                      )}
-                    >
-                      {selected && (
-                        <div className="absolute top-1.5 right-1.5 rounded-full bg-primary p-0.5">
-                          <Check className="h-2.5 w-2.5 text-primary-foreground" />
-                        </div>
-                      )}
-                      <span className="text-sm font-medium">
-                        {service.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Navigation */}
@@ -397,13 +403,20 @@ export function OnboardingWizard({
           >
             {t("onboarding.back")}
           </Button>
-          {step < STEP_COUNT - 1 ? (
-            <Button onClick={() => setStep((s) => s + 1)}>
-              {t("onboarding.next")}
-            </Button>
-          ) : (
-            <Button onClick={handleFinish}>{t("onboarding.finish")}</Button>
-          )}
+          <div className="flex gap-2">
+            {step >= 3 && step < STEP_COUNT - 1 && (
+              <Button variant="ghost" onClick={handleFinish}>
+                {t("onboarding.skip")}
+              </Button>
+            )}
+            {step < STEP_COUNT - 1 ? (
+              <Button onClick={() => setStep((s) => s + 1)}>
+                {t("onboarding.next")}
+              </Button>
+            ) : (
+              <Button onClick={handleFinish}>{t("onboarding.finish")}</Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -12,6 +12,6 @@ export function substituteVariables(
   values: Record<string, string>,
 ): string {
   return text.replace(/\{\{(\w+)\}\}/g, (_, name) => {
-    return values[name] !== undefined ? values[name] : `{{${name}}}`;
+    return values[name] ? values[name] : `{{${name}}}`;
   });
 }

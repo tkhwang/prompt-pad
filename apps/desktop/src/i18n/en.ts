@@ -29,6 +29,7 @@ export const en = {
     llm_description: "Select the services you'd like in the Send To menu.",
     back: "Back",
     next: "Next",
+    skip: "Skip",
     finish: "Get Started",
     browse_dialog_title: "Select Prompt Storage Directory",
   },

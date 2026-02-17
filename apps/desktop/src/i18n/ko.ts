@@ -35,6 +35,7 @@ export const ko: DeepStringify<typeof en> = {
     llm_description: "Send To 메뉴에 표시할 서비스를 선택합니다.",
     back: "이전",
     next: "다음",
+    skip: "건너뛰기",
     finish: "시작하기",
     browse_dialog_title: "프롬프트 저장 폴더 선택",
   },
