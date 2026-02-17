@@ -31,7 +31,7 @@ jobs:
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
-          APPLE_API_KEY_PATH: ./AuthKey.p8
+          APPLE_API_KEY_PATH: ${{ github.workspace }}/AuthKey.p8
         with:
           projectPath: ./apps/desktop
           args: --target ${{ matrix.target }}
