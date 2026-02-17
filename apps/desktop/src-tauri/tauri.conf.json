@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-config-schema/schema.json",
-  "productName": "Prompt Pad",
+  "productName": "PromptPad",
   "version": "0.1.0",
   "identifier": "app.tkbetter.promptpad.desktop",
   "build": {
@@ -15,7 +15,7 @@
     },
     "windows": [
       {
-        "title": "Prompt Pad",
+        "title": "PromptPad",
         "width": 1024,
         "height": 768,
         "resizable": true,

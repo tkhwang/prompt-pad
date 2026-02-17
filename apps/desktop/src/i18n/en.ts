@@ -1,6 +1,6 @@
 export const en = {
   app: {
-    title: "Prompt Pad",
+    title: "PromptPad",
     loading: "Loading...",
     loading_prompts: "Loading prompts...",
   },
@@ -10,7 +10,7 @@ export const en = {
   },
 
   onboarding: {
-    welcome_title: "Welcome to Prompt Pad",
+    welcome_title: "Welcome to PromptPad",
     welcome_subtitle: "Let's set things up in a few quick steps.",
     welcome_hint: "You can change all of these later in Settings.",
     language_title: "Choose your language",

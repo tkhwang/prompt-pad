@@ -6,7 +6,7 @@ type DeepStringify<T> = {
 
 export const ko: DeepStringify<typeof en> = {
   app: {
-    title: "Prompt Pad",
+    title: "PromptPad",
     loading: "로딩 중...",
     loading_prompts: "프롬프트 로딩 중...",
   },
@@ -16,7 +16,7 @@ export const ko: DeepStringify<typeof en> = {
   },
 
   onboarding: {
-    welcome_title: "Prompt Pad에 오신 것을 환영합니다",
+    welcome_title: "PromptPad에 오신 것을 환영합니다",
     welcome_subtitle: "몇 가지 간단한 설정을 진행합니다.",
     welcome_hint: "모든 설정은 나중에 설정에서 변경할 수 있습니다.",
     language_title: "언어를 선택하세요",

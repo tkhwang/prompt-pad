@@ -2,7 +2,7 @@ name: Build macOS
 
 on:
   push:
-    tags: ['v*']
+    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
@@ -39,5 +39,5 @@ jobs:
           projectPath: ./apps/desktop
           args: --target ${{ matrix.target }}
           tagName: ${{ github.ref_name }}
-          releaseName: Prompt Pad ${{ github.ref_name }}
+          releaseName: PromptPad ${{ github.ref_name }}
           releaseDraft: true

@@ -39,7 +39,7 @@ pnpm check              # Biome lint + format (auto-fix)
 
 ## Architecture
 
-**Prompt Pad** is a monorepo containing a Tauri 2 desktop app, a NestJS backend, and a shared types package.
+**PromptPad** is a monorepo containing a Tauri 2 desktop app, a NestJS backend, and a shared types package.
 
 ### Monorepo Structure
 
@@ -87,12 +87,12 @@ Settings persist via Tauri Store at `~/.PromptPad/settings.json`.
 
 ### Key Hooks (Desktop)
 
-| Hook | Purpose |
-|------|---------|
-| `usePrompts(promptDir)` | CRUD operations on prompt files, returns prompts/topics/selection state |
-| `useSettings()` | Loads/saves AppSettings, applies theme & font to DOM |
-| `useAutoSave(prompt, onSave)` | Debounced (500ms) save with JSON-diff change detection |
-| `useSearch(prompts)` | Case-insensitive search over title + body |
+| Hook                          | Purpose                                                                 |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| `usePrompts(promptDir)`       | CRUD operations on prompt files, returns prompts/topics/selection state |
+| `useSettings()`               | Loads/saves AppSettings, applies theme & font to DOM                    |
+| `useAutoSave(prompt, onSave)` | Debounced (500ms) save with JSON-diff change detection                  |
+| `useSearch(prompts)`          | Case-insensitive search over title + body                               |
 
 ### Component Layout (Desktop)
 
