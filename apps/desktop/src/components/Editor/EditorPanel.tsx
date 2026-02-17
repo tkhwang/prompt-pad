@@ -157,7 +157,7 @@ export function EditorPanel({
       </div>
 
       {/* Tags row — always rendered for consistent header height */}
-      <div className="flex items-center gap-1.5 px-5 py-1.5 border-b border-border/40 flex-wrap min-h-[34px]">
+      <div className="flex items-center gap-1.5 px-5 py-1.5 border-b border-border/40 flex-wrap min-h-8">
         {prompt.tags.map((tag) => (
           <Badge
             key={tag}
