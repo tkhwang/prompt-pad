@@ -42,10 +42,13 @@ export function useAutoUpdate() {
           action: {
             label: translate("update.install"),
             onClick: async () => {
-              const t = tRef.current;
-              const installingId = toast.loading(t("update.installing"), {
-                duration: Number.POSITIVE_INFINITY,
-              });
+              const translate = tRef.current;
+              const installingId = toast.loading(
+                translate("update.installing"),
+                {
+                  duration: Number.POSITIVE_INFINITY,
+                },
+              );
               try {
                 await update.downloadAndInstall();
                 toast.dismiss(installingId);
@@ -53,7 +56,7 @@ export function useAutoUpdate() {
               } catch (err) {
                 console.error("Failed to install update:", err);
                 toast.dismiss(installingId);
-                toast.error(t("update.install_failed"));
+                toast.error(translate("update.install_failed"));
               }
             },
           },

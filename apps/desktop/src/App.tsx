@@ -36,6 +36,7 @@ import { buildServiceUrl, PRESET_LLM_SERVICES } from "@/lib/llm-services";
 import { extractVariables, substituteVariables } from "@/lib/template";
 import { generateTitle } from "@/lib/title-generator";
 import { cn } from "@/lib/utils";
+import type { AppSettings } from "@/types/settings";
 
 interface AppContentProps {
   onLanguageOverride: (language: Language) => void;
@@ -89,7 +90,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [selectTopicDialogOpen, setSelectTopicDialogOpen] = useState(false);
   const [topicNameInput, setTopicNameInput] = useState("");
 
-  // Close animation 중 TopicPanel에 보여줄 토픽 (마지막 non-null 값 유지)
+  // Topic to display in TopicPanel during close animation (retains last non-null value)
   const lastTopicRef = useRef<string | null>(null);
   if (selectedTopic !== null) {
     lastTopicRef.current = selectedTopic;
@@ -98,13 +99,13 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     ? selectedTopic
     : (selectedTopic ?? lastTopicRef.current);
 
-  // TopicPanel 내부 클릭: 토픽 선택 + 패널 닫기
+  // TopicPanel internal click: select topic + close panel
   const handlePanelSelectTopic = useCallback((topic: string | null) => {
     setSelectedTopic(topic);
     setTopicPanelOpen(false);
   }, []);
 
-  // Sidebar에서 호출: TopicGroup 클릭(non-null)은 토픽 설정, 뒤로가기(null)는 패널만 열기
+  // Called from Sidebar: TopicGroup click (non-null) sets topic, back button (null) only opens panel
   const handleSidebarSelectTopic = useCallback((topic: string | null) => {
     if (topic !== null) {
       setSelectedTopic(topic);
@@ -253,38 +254,33 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     [handleCreatePromptInTopic],
   );
 
+  const resolvePromptBody = useCallback(
+    (prompt: NonNullable<typeof editingPrompt>): string => {
+      const variables = extractVariables(prompt.body);
+      if (variables.length === 0) return prompt.body;
+      return substituteVariables(prompt.body, prompt.templateValues ?? {});
+    },
+    [],
+  );
+
   const handleCopy = useCallback(async () => {
     if (editingPrompt) {
-      const variables = extractVariables(editingPrompt.body);
-      const text =
-        variables.length > 0
-          ? substituteVariables(
-              editingPrompt.body,
-              editingPrompt.templateValues ?? {},
-            )
-          : editingPrompt.body;
+      const text = resolvePromptBody(editingPrompt);
       await writeText(text);
       toast.success(t("editor.copied"));
     }
-  }, [editingPrompt, t]);
+  }, [editingPrompt, t, resolvePromptBody]);
 
   const handleSendTo = useCallback(
     async (service: LlmService) => {
       if (!editingPrompt) return;
-      const variables = extractVariables(editingPrompt.body);
-      const text =
-        variables.length > 0
-          ? substituteVariables(
-              editingPrompt.body,
-              editingPrompt.templateValues ?? {},
-            )
-          : editingPrompt.body;
+      const text = resolvePromptBody(editingPrompt);
       await writeText(text);
       toast.success(t("editor.copied"));
       const url = buildServiceUrl(service, text);
       await open(url);
     },
-    [editingPrompt, t],
+    [editingPrompt, t, resolvePromptBody],
   );
 
   const handleBlockSendTo = useCallback(
@@ -313,7 +309,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   }, [handleNewPrompt, handleNewTopicShortcut]);
 
   const handleSettingsUpdate = useCallback(
-    async (partial: Partial<import("@/types/settings").AppSettings>) => {
+    async (partial: Partial<AppSettings>) => {
       await updateSettings(partial);
       if (partial.promptDir) {
         await loadPrompts();
