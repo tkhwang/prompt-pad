@@ -98,8 +98,8 @@ fn export_data_zip(source_dir: String, output_path: String) -> Result<(), String
 
     for path in &files {
         let relative = path.strip_prefix(&source).map_err(|e| format!("Path error: {e}"))?;
-        let name = relative.to_string_lossy();
-        zip.start_file(name.as_ref(), options).map_err(|e| format!("Failed to add file to zip: {e}"))?;
+        let name = relative.to_string_lossy().replace('\\', "/");
+        zip.start_file(&*name, options).map_err(|e| format!("Failed to add file to zip: {e}"))?;
         let mut reader = BufReader::new(
             fs::File::open(path).map_err(|e| format!("Failed to open file: {e}"))?,
         );
