@@ -56,6 +56,12 @@ export const en = {
     language_description: "Select the interface language.",
     close: "Close",
     browse_dialog_title: "Select Prompt Storage Directory",
+    category_update: "Update",
+    version_label: "Version",
+    version_description: "Current app version",
+    check_update_label: "Check for Update",
+    check_update_description: "Manually check for available updates",
+    check_update_button: "Check",
     category_llm: "LLM Services",
     llm_services_label: "LLM Services",
     llm_services_description:
@@ -148,5 +154,7 @@ export const en = {
     installing: "Downloading and installing...",
     install_failed: "Update failed. Please try again later.",
     see_changes: "See changes",
+    up_to_date: "You're up to date!",
+    checking: "Checking for updates...",
   },
 } as const;

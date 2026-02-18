@@ -51,7 +51,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   } = useSettings();
   const { t, language } = useTranslation();
 
-  useAutoUpdate();
+  const { checkNow: checkForUpdate } = useAutoUpdate();
 
   // Sync language to parent I18nProvider when settings load or language changes
   useEffect(() => {
@@ -463,6 +463,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
           settings={settings}
           onUpdate={handleSettingsUpdate}
           onRerunSetup={handleRerunSetup}
+          onCheckForUpdate={checkForUpdate}
         />
       )}
 
