@@ -1,6 +1,6 @@
 [package]
 name = "prompt-pad"
-version = "0.1.0"
+version = "0.1.1"
 description = "A prompt editor for AI LLMs"
 authors = ["Taekeun Hwang"]
 edition = "2024"
