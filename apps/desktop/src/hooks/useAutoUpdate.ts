@@ -37,7 +37,9 @@ export function useAutoUpdate() {
         return;
       }
 
-      // Dismiss previous update toast if any
+      if (manual) {
+        toast.dismiss("update-check");
+      }
       if (toastIdRef.current !== undefined) {
         toast.dismiss(toastIdRef.current);
       }
