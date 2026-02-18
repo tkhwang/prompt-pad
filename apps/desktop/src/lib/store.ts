@@ -22,6 +22,7 @@ async function getDefaults(): Promise<AppSettings> {
     onboardingComplete: false,
     enabledLlmIds: DEFAULT_ENABLED_IDS,
     customLlmServices: [],
+    templatePanelCollapsed: false,
   };
 }
 
@@ -36,6 +37,7 @@ export async function loadSettings(): Promise<AppSettings> {
     onboardingComplete,
     enabledLlmIds,
     customLlmServices,
+    templatePanelCollapsed,
   ] = await Promise.all([
     getDefaults(),
     store.get<string>("promptDir"),
@@ -46,6 +48,7 @@ export async function loadSettings(): Promise<AppSettings> {
     store.get<boolean>("onboardingComplete"),
     store.get<string[]>("enabledLlmIds"),
     store.get<AppSettings["customLlmServices"]>("customLlmServices"),
+    store.get<boolean>("templatePanelCollapsed"),
   ]);
 
   return {
@@ -57,6 +60,8 @@ export async function loadSettings(): Promise<AppSettings> {
     onboardingComplete: onboardingComplete ?? defaults.onboardingComplete,
     enabledLlmIds: enabledLlmIds ?? defaults.enabledLlmIds,
     customLlmServices: customLlmServices ?? defaults.customLlmServices,
+    templatePanelCollapsed:
+      templatePanelCollapsed ?? defaults.templatePanelCollapsed,
   };
 }
 
@@ -69,5 +74,6 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
   await store.set("onboardingComplete", settings.onboardingComplete);
   await store.set("enabledLlmIds", settings.enabledLlmIds);
   await store.set("customLlmServices", settings.customLlmServices);
+  await store.set("templatePanelCollapsed", settings.templatePanelCollapsed);
   await store.save();
 }

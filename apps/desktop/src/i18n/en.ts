@@ -56,6 +56,12 @@ export const en = {
     language_description: "Select the interface language.",
     close: "Close",
     browse_dialog_title: "Select Prompt Storage Directory",
+    category_update: "Update",
+    version_label: "Version",
+    version_description: "Current app version",
+    check_update_label: "Check for Update",
+    check_update_description: "Manually check for available updates",
+    check_update_button: "Check",
     category_llm: "LLM Services",
     llm_services_label: "LLM Services",
     llm_services_description:
@@ -64,6 +70,13 @@ export const en = {
     llm_custom_label: "Service Name",
     llm_custom_url: "URL",
     llm_custom_delete: "Delete",
+    category_data: "Data",
+    export_label: "Export Data",
+    export_description: "Export all prompts as a zip file",
+    export_button: "Export",
+    export_success: "Data exported successfully!",
+    export_error: "Export failed. Please try again.",
+    exporting: "Exporting data...",
   },
 
   theme: {
@@ -147,6 +160,9 @@ export const en = {
     install: "Install",
     installing: "Downloading and installing...",
     install_failed: "Update failed. Please try again later.",
+    download_manually: "Download manually",
     see_changes: "See changes",
+    up_to_date: "You're up to date!",
+    checking: "Checking for updates...",
   },
 } as const;

@@ -30,6 +30,8 @@ interface EditorPanelProps {
   onTitleEnter?: () => void;
   enabledServices: LlmService[];
   onSendTo: (service: LlmService, content: string) => void;
+  templatePanelCollapsed: boolean;
+  onTemplatePanelCollapsedChange: (collapsed: boolean) => void;
 }
 
 export function EditorPanel({
@@ -42,6 +44,8 @@ export function EditorPanel({
   onTitleEnter,
   enabledServices,
   onSendTo,
+  templatePanelCollapsed,
+  onTemplatePanelCollapsedChange,
 }: EditorPanelProps) {
   const { t } = useTranslation();
   const body = prompt?.body ?? "";
@@ -264,6 +268,8 @@ export function EditorPanel({
             values={templateValues}
             onChange={handleTemplateValuesChange}
             editorMode={editorMode}
+            collapsed={templatePanelCollapsed}
+            onCollapsedChange={onTemplatePanelCollapsedChange}
           />
         )}
       </div>

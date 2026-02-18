@@ -1,14 +1,18 @@
-import { open } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
+import { open, save } from "@tauri-apps/plugin-dialog";
 import {
   Check,
+  Database,
   Palette,
+  RefreshCw,
   RotateCcw,
   Send,
   Settings2,
   Trash2,
 } from "lucide-react";
 import type { ComponentType } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -22,7 +26,7 @@ import { THEME_IDS, THEMES } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 import type { AppSettings, ColorTheme, ThemeId } from "@/types/settings";
 
-type SettingsCategory = "general" | "appearance" | "llm";
+type SettingsCategory = "general" | "appearance" | "llm" | "data" | "update";
 
 interface SettingsModalProps {
   open: boolean;
@@ -30,6 +34,7 @@ interface SettingsModalProps {
   settings: AppSettings;
   onUpdate: (partial: Partial<AppSettings>) => void;
   onRerunSetup: () => void;
+  onCheckForUpdate: () => void;
 }
 
 const MODE_OPTIONS: { value: ColorTheme; labelKey: TranslationKey }[] = [
@@ -50,12 +55,16 @@ const CATEGORIES: {
     icon: Palette,
   },
   { id: "llm", labelKey: "settings.category_llm", icon: Send },
+  { id: "data", labelKey: "settings.category_data", icon: Database },
+  { id: "update", labelKey: "settings.category_update", icon: RefreshCw },
 ];
 
 const CATEGORY_LABEL: Record<SettingsCategory, TranslationKey> = {
   general: "settings.category_general",
   appearance: "settings.category_appearance",
   llm: "settings.category_llm",
+  data: "settings.category_data",
+  update: "settings.category_update",
 };
 
 function SettingRow({
@@ -208,12 +217,20 @@ export function SettingsModal({
   settings,
   onUpdate,
   onRerunSetup,
+  onCheckForUpdate,
 }: SettingsModalProps) {
   const { t } = useTranslation();
   const [dir, setDir] = useState(settings.promptDir);
   const [category, setCategory] = useState<SettingsCategory>("general");
   const [customLabel, setCustomLabel] = useState("");
   const [customUrl, setCustomUrl] = useState("");
+  const [appVersion, setAppVersion] = useState("");
+
+  useEffect(() => {
+    import("@tauri-apps/api/app").then(({ getVersion }) =>
+      getVersion().then(setAppVersion),
+    );
+  }, []);
 
   const handleBrowse = async () => {
     const selected = await open({
@@ -536,6 +553,74 @@ export function SettingsModal({
                       </Button>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {category === "data" && (
+                <div className="mt-4 divide-y divide-border">
+                  <SettingRow
+                    title={t("settings.export_label")}
+                    description={t("settings.export_description")}
+                  >
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        const today = new Date().toISOString().slice(0, 10);
+                        const outputPath = await save({
+                          title: t("settings.export_label"),
+                          defaultPath: `PromptPad-export-${today}.zip`,
+                          filters: [{ name: "Zip", extensions: ["zip"] }],
+                        });
+                        if (!outputPath) return;
+                        toast.loading(t("settings.exporting"), {
+                          id: "data-export",
+                        });
+                        try {
+                          await invoke("export_data_zip", {
+                            sourceDir: settings.promptDir,
+                            outputPath,
+                          });
+                          toast.success(t("settings.export_success"), {
+                            id: "data-export",
+                          });
+                        } catch {
+                          toast.error(t("settings.export_error"), {
+                            id: "data-export",
+                          });
+                        }
+                      }}
+                    >
+                      <Database className="h-3.5 w-3.5 mr-1.5" />
+                      {t("settings.export_button")}
+                    </Button>
+                  </SettingRow>
+                </div>
+              )}
+
+              {category === "update" && (
+                <div className="mt-4 divide-y divide-border">
+                  <SettingRow
+                    title={t("settings.version_label")}
+                    description={t("settings.version_description")}
+                  >
+                    <p className="text-sm text-right">v{appVersion}</p>
+                  </SettingRow>
+                  <SettingRow
+                    title={t("settings.check_update_label")}
+                    description={t("settings.check_update_description")}
+                  >
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      size="sm"
+                      onClick={onCheckForUpdate}
+                    >
+                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                      {t("settings.check_update_button")}
+                    </Button>
+                  </SettingRow>
                 </div>
               )}
             </div>

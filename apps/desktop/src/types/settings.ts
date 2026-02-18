@@ -14,4 +14,5 @@ export interface AppSettings {
   onboardingComplete: boolean;
   enabledLlmIds: string[];
   customLlmServices: LlmService[];
+  templatePanelCollapsed: boolean;
 }
