@@ -70,6 +70,13 @@ export const en = {
     llm_custom_label: "Service Name",
     llm_custom_url: "URL",
     llm_custom_delete: "Delete",
+    category_data: "Data",
+    export_label: "Export Data",
+    export_description: "Export all prompts as a zip file",
+    export_button: "Export",
+    export_success: "Data exported successfully!",
+    export_error: "Export failed. Please try again.",
+    exporting: "Exporting data...",
   },
 
   theme: {

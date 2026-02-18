@@ -1,6 +1,8 @@
-import { open } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
+import { open, save } from "@tauri-apps/plugin-dialog";
 import {
   Check,
+  Database,
   Palette,
   RefreshCw,
   RotateCcw,
@@ -10,6 +12,7 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -23,7 +26,7 @@ import { THEME_IDS, THEMES } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 import type { AppSettings, ColorTheme, ThemeId } from "@/types/settings";
 
-type SettingsCategory = "general" | "appearance" | "llm" | "update";
+type SettingsCategory = "general" | "appearance" | "llm" | "data" | "update";
 
 interface SettingsModalProps {
   open: boolean;
@@ -52,6 +55,7 @@ const CATEGORIES: {
     icon: Palette,
   },
   { id: "llm", labelKey: "settings.category_llm", icon: Send },
+  { id: "data", labelKey: "settings.category_data", icon: Database },
   { id: "update", labelKey: "settings.category_update", icon: RefreshCw },
 ];
 
@@ -59,6 +63,7 @@ const CATEGORY_LABEL: Record<SettingsCategory, TranslationKey> = {
   general: "settings.category_general",
   appearance: "settings.category_appearance",
   llm: "settings.category_llm",
+  data: "settings.category_data",
   update: "settings.category_update",
 };
 
@@ -548,6 +553,49 @@ export function SettingsModal({
                       </Button>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {category === "data" && (
+                <div className="mt-4 divide-y divide-border">
+                  <SettingRow
+                    title={t("settings.export_label")}
+                    description={t("settings.export_description")}
+                  >
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        const today = new Date().toISOString().slice(0, 10);
+                        const outputPath = await save({
+                          title: t("settings.export_label"),
+                          defaultPath: `PromptPad-export-${today}.zip`,
+                          filters: [{ name: "Zip", extensions: ["zip"] }],
+                        });
+                        if (!outputPath) return;
+                        toast.loading(t("settings.exporting"), {
+                          id: "data-export",
+                        });
+                        try {
+                          await invoke("export_data_zip", {
+                            sourceDir: settings.promptDir,
+                            outputPath,
+                          });
+                          toast.success(t("settings.export_success"), {
+                            id: "data-export",
+                          });
+                        } catch {
+                          toast.error(t("settings.export_error"), {
+                            id: "data-export",
+                          });
+                        }
+                      }}
+                    >
+                      <Database className="h-3.5 w-3.5 mr-1.5" />
+                      {t("settings.export_button")}
+                    </Button>
+                  </SettingRow>
                 </div>
               )}
 

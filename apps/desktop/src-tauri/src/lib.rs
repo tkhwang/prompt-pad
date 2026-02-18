@@ -1,8 +1,10 @@
 use std::fs;
-use std::path::PathBuf;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_fs::FsExt;
+use zip::write::SimpleFileOptions;
 
 fn allow_saved_prompt_dir<R: Runtime>(app: &AppHandle<R>) {
     let settings_path = match app.path().resolve("settings.json", BaseDirectory::AppData) {
@@ -40,9 +42,50 @@ fn allow_saved_prompt_dir<R: Runtime>(app: &AppHandle<R>) {
     }
 }
 
+fn collect_files(dir: &Path, base: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
+    let entries = fs::read_dir(dir).map_err(|e| format!("Failed to read directory: {e}"))?;
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("Failed to read entry: {e}"))?;
+        let path = entry.path();
+        if path.is_dir() {
+            collect_files(&path, base, files)?;
+        } else {
+            files.push(path);
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn export_data_zip(source_dir: String, output_path: String) -> Result<(), String> {
+    let source = Path::new(&source_dir);
+    if !source.is_dir() {
+        return Err("Source directory does not exist".into());
+    }
+
+    let mut files = Vec::new();
+    collect_files(source, source, &mut files)?;
+
+    let file = fs::File::create(&output_path).map_err(|e| format!("Failed to create zip file: {e}"))?;
+    let mut zip = zip::ZipWriter::new(file);
+    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+
+    for path in &files {
+        let relative = path.strip_prefix(source).map_err(|e| format!("Path error: {e}"))?;
+        let name = relative.to_string_lossy();
+        zip.start_file(name.as_ref(), options).map_err(|e| format!("Failed to add file to zip: {e}"))?;
+        let contents = fs::read(path).map_err(|e| format!("Failed to read file: {e}"))?;
+        zip.write_all(&contents).map_err(|e| format!("Failed to write to zip: {e}"))?;
+    }
+
+    zip.finish().map_err(|e| format!("Failed to finalize zip: {e}"))?;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![export_data_zip])
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())

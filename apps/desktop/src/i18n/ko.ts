@@ -74,6 +74,13 @@ export const ko: DeepStringify<typeof en> = {
     llm_custom_label: "서비스 이름",
     llm_custom_url: "URL",
     llm_custom_delete: "삭제",
+    category_data: "데이터",
+    export_label: "데이터 내보내기",
+    export_description: "모든 프롬프트를 zip 파일로 내보냅니다",
+    export_button: "내보내기",
+    export_success: "데이터를 성공적으로 내보냈습니다!",
+    export_error: "내보내기에 실패했습니다. 다시 시도해 주세요.",
+    exporting: "데이터 내보내는 중...",
   },
 
   theme: {
