@@ -534,7 +534,10 @@ function App() {
   return (
     <I18nProvider language={language}>
       <AppContent onLanguageOverride={setLanguage} />
-      <Toaster />
+      <Toaster
+        position="bottom-right"
+        offset={{ bottom: "48px", right: "8px" }}
+      />
     </I18nProvider>
   );
 }
