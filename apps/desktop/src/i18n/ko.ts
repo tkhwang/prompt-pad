@@ -149,6 +149,8 @@ export const ko: DeepStringify<typeof en> = {
     available_title: "업데이트 가능",
     available_description: "버전 {{version}} 설치 준비 완료",
     install: "설치",
+    installing: "다운로드 및 설치 중...",
+    install_failed: "업데이트에 실패했습니다. 나중에 다시 시도해 주세요.",
     see_changes: "변경 사항",
   },
 };
