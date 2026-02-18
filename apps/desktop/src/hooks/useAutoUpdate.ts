@@ -3,11 +3,12 @@ import { open } from "@tauri-apps/plugin-shell";
 import { check } from "@tauri-apps/plugin-updater";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import {
+  RELEASE_URL,
+  UPDATE_CHECK_INTERVAL_MS,
+  UPDATE_INITIAL_DELAY_MS,
+} from "@/consts";
 import { useTranslation } from "@/i18n/I18nProvider";
-
-const INITIAL_DELAY_MS = 5_000;
-const CHECK_INTERVAL_MS = 30 * 60 * 1_000;
-const RELEASE_URL = "https://github.com/tkhwang/prompt-pad/releases/latest";
 
 export function useAutoUpdate() {
   const { t } = useTranslation();
@@ -74,8 +75,8 @@ export function useAutoUpdate() {
 
     const timeoutId = setTimeout(() => {
       checkForUpdate();
-      intervalId = setInterval(checkForUpdate, CHECK_INTERVAL_MS);
-    }, INITIAL_DELAY_MS);
+      intervalId = setInterval(checkForUpdate, UPDATE_CHECK_INTERVAL_MS);
+    }, UPDATE_INITIAL_DELAY_MS);
 
     return () => {
       clearTimeout(timeoutId);
