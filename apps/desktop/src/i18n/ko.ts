@@ -144,4 +144,11 @@ export const ko: DeepStringify<typeof en> = {
     delete_cancel: "취소",
     delete_action: "삭제",
   },
+
+  update: {
+    available_title: "업데이트 가능",
+    available_description: "버전 {{version}} 설치 준비 완료",
+    install: "설치",
+    see_changes: "변경 사항",
+  },
 };
