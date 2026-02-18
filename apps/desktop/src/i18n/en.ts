@@ -140,4 +140,13 @@ export const en = {
     delete_cancel: "Cancel",
     delete_action: "Delete",
   },
+
+  update: {
+    available_title: "Update available",
+    available_description: "Version {{version}} is ready to install",
+    install: "Install",
+    installing: "Downloading and installing...",
+    install_failed: "Update failed. Please try again later.",
+    see_changes: "See changes",
+  },
 } as const;

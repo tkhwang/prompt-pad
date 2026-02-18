@@ -78,38 +78,61 @@ The filesystem is the database. Prompts are markdown files with YAML frontmatter
 ```
 ~/PromptPad/           # default promptDir (configurable)
 ├── General/
-│   └── my-prompt.md   # ---\ntitle: ...\ntags: [...]\n---\n\nbody
+│   └── my-prompt.md
 └── Coding/
     └── review.md
 ```
+
+Prompt frontmatter:
+
+```yaml
+title: ...
+created: ISO8601
+updated: ISO8601
+tags: [tag1, tag2]
+templateValues: { varName: value }
+```
+
+Key types:
+
+- `Prompt` — id, title, body, topic, tags, filePath, created, updated, templateValues
+- `Topic` — name, path, promptCount
+- `LlmService` — id, label, url, queryParam, isCustom
+- `AppSettings` — promptDir, colorTheme, themeId, fontSize, language, onboardingComplete, enabledLlmIds, customLlmServices
 
 Settings persist via Tauri Store at `~/.PromptPad/settings.json`.
 
 ### Key Hooks (Desktop)
 
-| Hook                          | Purpose                                                                 |
-| ----------------------------- | ----------------------------------------------------------------------- |
-| `usePrompts(promptDir)`       | CRUD operations on prompt files, returns prompts/topics/selection state |
-| `useSettings()`               | Loads/saves AppSettings, applies theme & font to DOM                    |
-| `useAutoSave(prompt, onSave)` | Debounced (500ms) save with JSON-diff change detection                  |
-| `useSearch(prompts)`          | Case-insensitive search over title + body                               |
+| Hook                          | Purpose                                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| `usePrompts(promptDir)`       | CRUD on prompt files + topic CRUD (create/rename/delete), returns prompts/topics/selection state |
+| `useSettings()`               | Loads/saves AppSettings (theme, font, LLM services), applies appearance to DOM                   |
+| `useAutoSave(prompt, onSave)` | Debounced (500ms) save with JSON-diff change detection                                           |
+| `useSearch(prompts)`          | Case-insensitive search over title + body                                                        |
 
 ### Component Layout (Desktop)
 
 ```
 App.tsx                          # Root: I18nProvider + state orchestration
+├── TopicPanel/                  # Left sliding panel for topic management
+│   └── TopicPanel              # Topic list with CRUD (create/rename/delete)
 ├── Sidebar/                     # Prompt list with search, grouped by topic
+│   ├── SidebarToolbar          # View mode toggle + new prompt button
 │   ├── SearchBar
 │   ├── TopicGroup
 │   └── PromptItem
 ├── Editor/                      # Right panel
-│   ├── MetaBar                  # Title input
-│   ├── MarkdownToolbar          # Bear-style icon toolbar (visual only)
-│   └── PromptEditor             # Body textarea
-├── StatusBar                    # Bottom action bar
-├── SettingsModal
-├── TemplateModal                # {{variable}} fill & copy
-└── OnboardingWizard             # First-run setup flow
+│   ├── EditorPanel             # Main container: title, tags, editor/preview, template panel
+│   ├── Editor                  # Wrapper for MarkdownToolbar + PromptEditor
+│   ├── MarkdownToolbar         # Bear-style icon toolbar
+│   ├── PromptEditor            # Body textarea (edit mode)
+│   ├── BlockCard               # Individual content block with copy/send buttons
+│   ├── MarkdownPreview         # GFM markdown rendering (view mode)
+│   └── TemplatePanel           # Collapsible right sidebar for {{variable}} input
+├── StatusBar                    # Bottom action bar with LLM service launcher
+├── SettingsModal                # Settings with theme, font, language, LLM services
+└── OnboardingWizard             # First-run setup flow (with skip option)
 ```
 
 ### Backend (NestJS)
@@ -126,11 +149,40 @@ Custom Context-based implementation (not i18next). Type-safe keys derived from `
 
 ### Theming
 
-CSS variables in `index.css` using oklch color space. Three modes: light/dark/system. Font families (system/mono/serif) applied via `--editor-font` CSS variable and root class.
+JS-based theme system in `lib/themes.ts`. Six named themes (`ThemeId`): zinc, slate, stone, rose, sage, violet. Each theme defines light/dark CSS variable sets using oklch color space. `useSettings()` applies theme vars to document root at runtime. Three color modes: light/dark/system. Font families (system/mono/serif) applied via `--editor-font` CSS variable and root class.
 
 ### Template System
 
-Prompts support `{{variableName}}` placeholders. `extractVariables()` parses them, `TemplateModal` lets users fill values before copying to clipboard.
+`lib/template.ts` provides `extractVariables()` and `substituteVariables()`. `TemplatePanel` (collapsible right sidebar in editor) lets users fill `{{variable}}` values inline. Values persist in prompt frontmatter. Substitution happens before copy or send-to-LLM.
+
+### LLM Services
+
+`lib/llm-services.ts` defines preset services (ChatGPT, Claude, Gemini, Perplexity, Copilot, Grok, DeepSeek, Le Chat) + custom user services. `buildServiceUrl()` constructs URLs with prompt pre-filled via query parameter. Users enable/disable services in settings. Opens via Tauri shell plugin.
+
+### Block System
+
+Prompts split by `---` or `—` (em dash) separator into independent blocks. Each block renders as a `BlockCard` with its own copy/send buttons. Two view styles: markdown (styled blocks) and chat (bubble style).
+
+### View Modes
+
+Sidebar supports three density modes (compact/cozy/detailed) via `SidebarToolbar`. Editor toggles between edit mode (textarea) and view mode (markdown preview with blocks).
+
+### Key Lib Files (Desktop)
+
+| File                     | Purpose                                                                            |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| `lib/llm-services.ts`    | LLM service definitions, URL builder                                               |
+| `lib/markdown.ts`        | YAML frontmatter parsing (`parseMarkdown`) and serialization (`serializeMarkdown`) |
+| `lib/template.ts`        | Template variable extraction and substitution                                      |
+| `lib/themes.ts`          | Named color theme definitions (6 themes, light/dark variants)                      |
+| `lib/title-generator.ts` | Poetic auto-generated titles for new prompts                                       |
+
+### Keyboard Shortcuts
+
+| Shortcut | Action     |
+| -------- | ---------- |
+| `⌘N`     | New prompt |
+| `⌘⇧N`    | New topic  |
 
 ## TypeScript
 

@@ -24,6 +24,7 @@
     ]
   },
   "bundle": {
+    "createUpdaterArtifacts": "v2Compatible",
     "active": true,
     "targets": "all",
     "icon": [
@@ -39,6 +40,14 @@
       "signingIdentity": null,
       "entitlements": "entitlements.plist",
       "minimumSystemVersion": "10.13"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENFMTY1N0IwODU5NDRDMkEKUldRcVRKU0ZzRmNXenZDSFNlVUhlTnZhOHJNcS9sTVpzY3BxdFkyNVNOM0l6V3h6YWhaU1NpVUIK",
+      "endpoints": [
+        "https://github.com/tkhwang/prompt-pad/releases/latest/download/latest.json"
+      ]
     }
   }
 }

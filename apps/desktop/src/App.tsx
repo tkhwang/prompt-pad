@@ -25,6 +25,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toaster } from "@/components/ui/sonner";
 import { AUTO_SAVE_DELAY_MS } from "@/consts";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { useAutoUpdate } from "@/hooks/useAutoUpdate";
 import { usePrompts } from "@/hooks/usePrompts";
 import { useSearch } from "@/hooks/useSearch";
 import { useSettings } from "@/hooks/useSettings";
@@ -48,6 +49,8 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     completeOnboarding,
   } = useSettings();
   const { t, language } = useTranslation();
+
+  useAutoUpdate();
 
   // Sync language to parent I18nProvider when settings load or language changes
   useEffect(() => {
