@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::Write;
+use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Manager, Runtime};
@@ -100,8 +100,10 @@ fn export_data_zip(source_dir: String, output_path: String) -> Result<(), String
         let relative = path.strip_prefix(&source).map_err(|e| format!("Path error: {e}"))?;
         let name = relative.to_string_lossy();
         zip.start_file(name.as_ref(), options).map_err(|e| format!("Failed to add file to zip: {e}"))?;
-        let contents = fs::read(path).map_err(|e| format!("Failed to read file: {e}"))?;
-        zip.write_all(&contents).map_err(|e| format!("Failed to write to zip: {e}"))?;
+        let mut reader = BufReader::new(
+            fs::File::open(path).map_err(|e| format!("Failed to open file: {e}"))?,
+        );
+        io::copy(&mut reader, &mut zip).map_err(|e| format!("Failed to write to zip: {e}"))?;
     }
 
     zip.finish().map_err(|e| format!("Failed to finalize zip: {e}"))?;
