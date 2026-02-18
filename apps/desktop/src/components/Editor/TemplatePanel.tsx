@@ -1,5 +1,4 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTranslation } from "@/i18n/I18nProvider";
 
@@ -8,6 +7,8 @@ interface TemplatePanelProps {
   values: Record<string, string>;
   onChange: (values: Record<string, string>) => void;
   editorMode: "view" | "edit";
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
 }
 
 export function TemplatePanel({
@@ -15,16 +16,17 @@ export function TemplatePanel({
   values,
   onChange,
   editorMode,
+  collapsed,
+  onCollapsedChange,
 }: TemplatePanelProps) {
   const { t } = useTranslation();
-  const [collapsed, setCollapsed] = useState(false);
 
   if (collapsed) {
     return (
       <div className="shrink-0 border-l border-border/40 flex items-start pt-2">
         <button
           type="button"
-          onClick={() => setCollapsed(false)}
+          onClick={() => onCollapsedChange(false)}
           className="p-2 hover:bg-muted/50 transition-colors"
           title={t("template.title")}
         >
@@ -42,7 +44,7 @@ export function TemplatePanel({
         </span>
         <button
           type="button"
-          onClick={() => setCollapsed(true)}
+          onClick={() => onCollapsedChange(true)}
           className="p-1 hover:bg-muted/50 rounded transition-colors"
         >
           <ChevronRight className="h-4 w-4" />

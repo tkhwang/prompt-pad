@@ -250,6 +250,10 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
               onTitleEnter={handleTitleEnter}
               enabledServices={enabledServices}
               onSendTo={handleBlockSendTo}
+              templatePanelCollapsed={settings?.templatePanelCollapsed ?? false}
+              onTemplatePanelCollapsedChange={(collapsed) =>
+                updateSettings({ templatePanelCollapsed: collapsed })
+              }
             />
           </div>
         </div>

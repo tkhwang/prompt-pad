@@ -2854,6 +2854,7 @@ dependencies = [
 name = "prompt-pad"
 version = "0.1.1"
 dependencies = [
+ "dirs",
  "serde",
  "serde_json",
  "tauri",

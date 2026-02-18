@@ -42,13 +42,20 @@ fn allow_saved_prompt_dir<R: Runtime>(app: &AppHandle<R>) {
     }
 }
 
-fn collect_files(dir: &Path, base: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
+fn collect_files(dir: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
     let entries = fs::read_dir(dir).map_err(|e| format!("Failed to read directory: {e}"))?;
     for entry in entries {
         let entry = entry.map_err(|e| format!("Failed to read entry: {e}"))?;
         let path = entry.path();
-        if path.is_dir() {
-            collect_files(&path, base, files)?;
+        let metadata = fs::symlink_metadata(&path)
+            .map_err(|e| format!("Failed to read metadata: {e}"))?;
+
+        if metadata.file_type().is_symlink() {
+            continue;
+        }
+
+        if metadata.is_dir() {
+            collect_files(&path, files)?;
         } else {
             files.push(path);
         }
@@ -58,20 +65,39 @@ fn collect_files(dir: &Path, base: &Path, files: &mut Vec<PathBuf>) -> Result<()
 
 #[tauri::command]
 fn export_data_zip(source_dir: String, output_path: String) -> Result<(), String> {
-    let source = Path::new(&source_dir);
+    let source = Path::new(&source_dir)
+        .canonicalize()
+        .map_err(|e| format!("Invalid source directory: {e}"))?;
+
+    let home = dirs::home_dir().ok_or("Cannot determine home directory")?;
+
+    if !source.starts_with(&home) {
+        return Err("Source directory must be within user home directory".into());
+    }
+
+    let output = Path::new(&output_path);
+    if let Some(parent) = output.parent() {
+        let canonical_parent = parent
+            .canonicalize()
+            .map_err(|e| format!("Invalid output path: {e}"))?;
+        if !canonical_parent.starts_with(&home) {
+            return Err("Output path must be within user home directory".into());
+        }
+    }
+
     if !source.is_dir() {
         return Err("Source directory does not exist".into());
     }
 
     let mut files = Vec::new();
-    collect_files(source, source, &mut files)?;
+    collect_files(&source, &mut files)?;
 
     let file = fs::File::create(&output_path).map_err(|e| format!("Failed to create zip file: {e}"))?;
     let mut zip = zip::ZipWriter::new(file);
     let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
     for path in &files {
-        let relative = path.strip_prefix(source).map_err(|e| format!("Path error: {e}"))?;
+        let relative = path.strip_prefix(&source).map_err(|e| format!("Path error: {e}"))?;
         let name = relative.to_string_lossy();
         zip.start_file(name.as_ref(), options).map_err(|e| format!("Failed to add file to zip: {e}"))?;
         let contents = fs::read(path).map_err(|e| format!("Failed to read file: {e}"))?;
