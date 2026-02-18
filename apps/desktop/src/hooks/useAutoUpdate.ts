@@ -61,7 +61,15 @@ export function useAutoUpdate() {
             } catch (err) {
               console.error("Failed to install update:", err);
               toast.dismiss(installingId);
-              toast.error(translate("update.install_failed"));
+              toast.error(translate("update.install_failed"), {
+                duration: Number.POSITIVE_INFINITY,
+                action: {
+                  label: translate("update.download_manually"),
+                  onClick: () => {
+                    open(RELEASE_URL);
+                  },
+                },
+              });
             }
           },
         },

@@ -160,6 +160,7 @@ export const en = {
     install: "Install",
     installing: "Downloading and installing...",
     install_failed: "Update failed. Please try again later.",
+    download_manually: "Download manually",
     see_changes: "See changes",
     up_to_date: "You're up to date!",
     checking: "Checking for updates...",
