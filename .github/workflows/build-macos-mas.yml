@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       build_number:
-        description: "Build number (CFBundleVersion) — must increment for each App Store submission"
-        required: true
+        description: "Build number override (defaults to github.run_number)"
+        required: false
         type: string
       dry_run:
         description: "Dry run — validate only, skip upload"
@@ -110,7 +110,7 @@ jobs:
       # ── 7. Read version + set build number ───────────────────────
       - name: Set version and build number
         env:
-          BUILD_NUMBER: ${{ inputs.build_number }}
+          BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
         run: |
           APP_PATH="apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/PromptPad.app"
           VERSION=$(python3 -c "import json; print(json.load(open('apps/desktop/src-tauri/tauri.conf.json'))['version'])")
@@ -185,7 +185,7 @@ jobs:
       # ── 10. productbuild (.pkg) ──────────────────────────────────
       - name: Create .pkg installer
         env:
-          BUILD_NUMBER: ${{ inputs.build_number }}
+          BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
         run: |
           INSTALLER_IDENTITY=$(security find-identity -v "$KEYCHAIN_PATH" | grep "3rd Party Mac Developer Installer" | head -1 | awk -F'"' '{print $2}')
           echo "Installer signing with: $INSTALLER_IDENTITY"
@@ -247,7 +247,7 @@ jobs:
       - name: Upload .pkg artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PromptPad-MAS-${{ inputs.build_number }}
+          name: PromptPad-MAS-${{ inputs.build_number || github.run_number }}
           path: ${{ env.PKG_PATH }}
           retention-days: 30
 
