@@ -2,6 +2,16 @@ name: Build macOS (App Store)
 
 on:
   workflow_dispatch:
+    inputs:
+      build_number:
+        description: "Build number (CFBundleVersion) — must increment for each App Store submission"
+        required: true
+        type: string
+      dry_run:
+        description: "Dry run — validate only, skip upload"
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -9,22 +19,249 @@ permissions:
 jobs:
   build-mas:
     runs-on: macos-latest
-    strategy:
-      matrix:
-        target: [aarch64-apple-darwin, x86_64-apple-darwin]
     steps:
+      # ── 1. Checkout ──────────────────────────────────────────────
       - uses: actions/checkout@v4
+
+      # ── 2. Toolchain setup ───────────────────────────────────────
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - uses: pnpm/action-setup@v2
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
       - run: pnpm install --frozen-lockfile
+
+      # ── 3. Keychain + certificate import ─────────────────────────
+      - name: Create keychain and import certificates
+        env:
+          MAS_APP_CERT: ${{ secrets.MAS_APP_CERT }}
+          MAS_APP_CERT_PASSWORD: ${{ secrets.MAS_APP_CERT_PASSWORD }}
+          MAS_INSTALLER_CERT: ${{ secrets.MAS_INSTALLER_CERT }}
+          MAS_INSTALLER_CERT_PASSWORD: ${{ secrets.MAS_INSTALLER_CERT_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/mas-build.keychain"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
+
+          # Create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Import Application certificate
+          APP_CERT_PATH="$RUNNER_TEMP/app_cert.p12"
+          echo "$MAS_APP_CERT" | base64 --decode > "$APP_CERT_PATH"
+          security import "$APP_CERT_PATH" \
+            -k "$KEYCHAIN_PATH" \
+            -P "$MAS_APP_CERT_PASSWORD" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/productbuild
+          rm -f "$APP_CERT_PATH"
+
+          # Import Installer certificate
+          INSTALLER_CERT_PATH="$RUNNER_TEMP/installer_cert.p12"
+          echo "$MAS_INSTALLER_CERT" | base64 --decode > "$INSTALLER_CERT_PATH"
+          security import "$INSTALLER_CERT_PATH" \
+            -k "$KEYCHAIN_PATH" \
+            -P "$MAS_INSTALLER_CERT_PASSWORD" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/productbuild
+          rm -f "$INSTALLER_CERT_PATH"
+
+          # Allow non-interactive signing
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Add to search list (prepend so our certs are found first)
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+
+      # ── 4. Provisioning profile install ──────────────────────────
+      - name: Install provisioning profile
+        env:
+          MAS_PROVISIONING_PROFILE: ${{ secrets.MAS_PROVISIONING_PROFILE }}
+        run: |
+          PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILE_DIR"
+          echo "$MAS_PROVISIONING_PROFILE" | base64 --decode > "$PROFILE_DIR/PromptPad_MAS.provisionprofile"
+          echo "PROVISIONING_PROFILE_PATH=$PROFILE_DIR/PromptPad_MAS.provisionprofile" >> "$GITHUB_ENV"
+
+      # ── 5. Replace $TEAM_ID in entitlements ──────────────────────
+      - name: Substitute TEAM_ID in entitlements
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          sed -i '' "s/\$TEAM_ID/${APPLE_TEAM_ID}/g" \
+            apps/desktop/src-tauri/entitlements.mas.plist
+          echo "Entitlements after substitution:"
+          cat apps/desktop/src-tauri/entitlements.mas.plist
+
+      # ── 6. Tauri build (universal binary) ────────────────────────
       - name: Build for App Store
-        run: pnpm tauri build --target ${{ matrix.target }} --features app-store --config src-tauri/tauri.appstore.conf.json
+        run: |
+          pnpm tauri build \
+            --target universal-apple-darwin \
+            --features app-store \
+            --config src-tauri/tauri.appstore.conf.json
         working-directory: apps/desktop
-      # TODO: 3rd Party Mac Developer signing
-      # TODO: productbuild to create .pkg
-      # TODO: altool to upload to App Store Connect
+
+      # ── 7. Read version + set build number ───────────────────────
+      - name: Set version and build number
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          APP_PATH="apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/PromptPad.app"
+          VERSION=$(python3 -c "import json; print(json.load(open('apps/desktop/src-tauri/tauri.conf.json'))['version'])")
+
+          echo "App version: $VERSION"
+          echo "Build number: $BUILD_NUMBER"
+
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP_PATH/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP_PATH/Contents/Info.plist"
+
+          echo "APP_PATH=$APP_PATH" >> "$GITHUB_ENV"
+          echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      # ── 8. Embed provisioning profile ────────────────────────────
+      - name: Embed provisioning profile in app
+        run: |
+          cp "$PROVISIONING_PROFILE_PATH" "$APP_PATH/Contents/embedded.provisionprofile"
+
+      # ── 9. Deep codesign ─────────────────────────────────────────
+      - name: Codesign app bundle
+        run: |
+          ENTITLEMENTS="apps/desktop/src-tauri/entitlements.mas.plist"
+
+          # Discover signing identity from keychain
+          APP_IDENTITY=$(security find-identity -v "$KEYCHAIN_PATH" | grep "3rd Party Mac Developer Application" | head -1 | awk -F'"' '{print $2}')
+          echo "Signing with: $APP_IDENTITY"
+
+          if [ -z "$APP_IDENTITY" ]; then
+            echo "::error::No '3rd Party Mac Developer Application' identity found in keychain"
+            exit 1
+          fi
+
+          CODESIGN_ARGS=(
+            --force --timestamp --options runtime
+            --entitlements "$ENTITLEMENTS"
+            --sign "$APP_IDENTITY"
+            --keychain "$KEYCHAIN_PATH"
+          )
+
+          # 1. Sign all dylibs
+          find "$APP_PATH" -name "*.dylib" -print0 | while IFS= read -r -d '' lib; do
+            echo "Signing dylib: $lib"
+            codesign "${CODESIGN_ARGS[@]}" "$lib"
+          done
+
+          # 2. Sign nested helper apps
+          find "$APP_PATH/Contents" -name "*.app" -depth 2 -print0 | while IFS= read -r -d '' helper; do
+            echo "Signing helper app: $helper"
+            codesign "${CODESIGN_ARGS[@]}" "$helper"
+          done
+
+          # 3. Sign frameworks
+          find "$APP_PATH" -name "*.framework" -print0 | while IFS= read -r -d '' fw; do
+            echo "Signing framework: $fw"
+            codesign "${CODESIGN_ARGS[@]}" "$fw"
+          done
+
+          # 4. Sign other executables in MacOS/
+          find "$APP_PATH/Contents/MacOS" -type f -perm +111 ! -name "PromptPad" -print0 | while IFS= read -r -d '' exe; do
+            echo "Signing executable: $exe"
+            codesign "${CODESIGN_ARGS[@]}" "$exe"
+          done
+
+          # 5. Sign the main app bundle
+          echo "Signing main app bundle"
+          codesign "${CODESIGN_ARGS[@]}" "$APP_PATH"
+
+          # Verify
+          codesign --verify --deep --strict "$APP_PATH"
+          echo "Codesign verification passed"
+
+      # ── 10. productbuild (.pkg) ──────────────────────────────────
+      - name: Create .pkg installer
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          INSTALLER_IDENTITY=$(security find-identity -v "$KEYCHAIN_PATH" | grep "3rd Party Mac Developer Installer" | head -1 | awk -F'"' '{print $2}')
+          echo "Installer signing with: $INSTALLER_IDENTITY"
+
+          if [ -z "$INSTALLER_IDENTITY" ]; then
+            echo "::error::No '3rd Party Mac Developer Installer' identity found in keychain"
+            exit 1
+          fi
+
+          PKG_PATH="$RUNNER_TEMP/PromptPad_${APP_VERSION}_${BUILD_NUMBER}.pkg"
+
+          productbuild \
+            --component "$APP_PATH" /Applications \
+            --sign "$INSTALLER_IDENTITY" \
+            --keychain "$KEYCHAIN_PATH" \
+            "$PKG_PATH"
+
+          echo "PKG_PATH=$PKG_PATH" >> "$GITHUB_ENV"
+          echo "Created: $PKG_PATH"
+          ls -lh "$PKG_PATH"
+
+      # ── 11. Write ASC API key ────────────────────────────────────
+      - name: Write App Store Connect API key
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+        run: |
+          API_KEY_PATH="/tmp/AuthKey_${APPLE_API_KEY}.p8"
+          echo "$APPLE_API_KEY_P8" | base64 --decode > "$API_KEY_PATH"
+
+      # ── 12. Validate with altool ─────────────────────────────────
+      - name: Validate .pkg with App Store Connect
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          API_PRIVATE_KEYS_DIR: /tmp
+        run: |
+          xcrun altool --validate-app \
+            --file "$PKG_PATH" \
+            --type macos \
+            --apiKey "$APPLE_API_KEY" \
+            --apiIssuer "$APPLE_API_ISSUER"
+
+      # ── 13. Upload to App Store Connect ──────────────────────────
+      - name: Upload .pkg to App Store Connect
+        if: ${{ inputs.dry_run == false }}
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          API_PRIVATE_KEYS_DIR: /tmp
+        run: |
+          xcrun altool --upload-app \
+            --file "$PKG_PATH" \
+            --type macos \
+            --apiKey "$APPLE_API_KEY" \
+            --apiIssuer "$APPLE_API_ISSUER"
+
+      # ── 14. Upload artifact ──────────────────────────────────────
+      - name: Upload .pkg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PromptPad-MAS-${{ inputs.build_number }}
+          path: ${{ env.PKG_PATH }}
+          retention-days: 30
+
+      # ── 15. Cleanup ──────────────────────────────────────────────
+      - name: Cleanup
+        if: always()
+        run: |
+          # Delete temporary keychain
+          if [ -n "$KEYCHAIN_PATH" ] && [ -f "$KEYCHAIN_PATH" ]; then
+            security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
+          fi
+
+          # Delete API key file
+          rm -f /tmp/AuthKey_*.p8
+
+          # Delete provisioning profile
+          rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/PromptPad_MAS.provisionprofile"
