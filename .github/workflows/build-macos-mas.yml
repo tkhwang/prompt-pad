@@ -1,0 +1,30 @@
+name: Build macOS (App Store)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-mas:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target: [aarch64-apple-darwin, x86_64-apple-darwin]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: pnpm/action-setup@v2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - run: pnpm install --frozen-lockfile
+      - name: Build for App Store
+        run: pnpm tauri build --target ${{ matrix.target }} --features app-store --config src-tauri/tauri.appstore.conf.json
+        working-directory: apps/desktop
+      # TODO: 3rd Party Mac Developer signing
+      # TODO: productbuild to create .pkg
+      # TODO: altool to upload to App Store Connect

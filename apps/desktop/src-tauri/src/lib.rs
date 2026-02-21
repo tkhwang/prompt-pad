@@ -64,15 +64,15 @@ fn collect_files(dir: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn export_data_zip(source_dir: String, output_path: String) -> Result<(), String> {
+fn export_data_zip(app: AppHandle, source_dir: String, output_path: String) -> Result<(), String> {
     let source = Path::new(&source_dir)
         .canonicalize()
         .map_err(|e| format!("Invalid source directory: {e}"))?;
 
-    let home = dirs::home_dir().ok_or("Cannot determine home directory")?;
+    let scope = app.fs_scope();
 
-    if !source.starts_with(&home) {
-        return Err("Source directory must be within user home directory".into());
+    if !scope.is_allowed(&source) {
+        return Err("Source directory is not in allowed scope".into());
     }
 
     let output = Path::new(&output_path);
@@ -80,8 +80,8 @@ fn export_data_zip(source_dir: String, output_path: String) -> Result<(), String
         let canonical_parent = parent
             .canonicalize()
             .map_err(|e| format!("Invalid output path: {e}"))?;
-        if !canonical_parent.starts_with(&home) {
-            return Err("Output path must be within user home directory".into());
+        if !scope.is_allowed(&canonical_parent) {
+            return Err("Output path is not in allowed scope".into());
         }
     }
 
@@ -110,10 +110,19 @@ fn export_data_zip(source_dir: String, output_path: String) -> Result<(), String
     Ok(())
 }
 
+#[tauri::command]
+fn get_distribution_channel() -> &'static str {
+    if cfg!(feature = "app-store") {
+        "mas"
+    } else {
+        "direct"
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![export_data_zip])
+        .invoke_handler(tauri::generate_handler![export_data_zip, get_distribution_channel])
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())

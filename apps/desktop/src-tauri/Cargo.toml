@@ -6,6 +6,10 @@ authors = ["Taekeun Hwang"]
 edition = "2024"
 license = "MIT"
 
+[features]
+default = []
+app-store = []
+
 [lib]
 name = "prompt_pad_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
@@ -25,4 +29,3 @@ tauri-plugin-shell = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 zip = "2"
-dirs = "6"
