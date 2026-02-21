@@ -21,6 +21,10 @@ import { Switch } from "@/components/ui/switch";
 import type { TranslationKey } from "@/i18n";
 import { LANGUAGE_OPTIONS } from "@/i18n";
 import { useTranslation } from "@/i18n/I18nProvider";
+import {
+  type DistributionChannel,
+  getDistributionChannel,
+} from "@/lib/distribution";
 import { type LlmService, PRESET_LLM_SERVICES } from "@/lib/llm-services";
 import { THEME_IDS, THEMES } from "@/lib/themes";
 import { cn } from "@/lib/utils";
@@ -220,16 +224,24 @@ export function SettingsModal({
   onCheckForUpdate,
 }: SettingsModalProps) {
   const { t } = useTranslation();
+
   const [dir, setDir] = useState(settings.promptDir);
   const [category, setCategory] = useState<SettingsCategory>("general");
   const [customLabel, setCustomLabel] = useState("");
   const [customUrl, setCustomUrl] = useState("");
   const [appVersion, setAppVersion] = useState("");
+  const [channel, setChannel] = useState<DistributionChannel>("direct");
 
   useEffect(() => {
-    import("@tauri-apps/api/app").then(({ getVersion }) =>
-      getVersion().then(setAppVersion),
-    );
+    Promise.all([
+      import("@tauri-apps/api/app").then(({ getVersion }) => getVersion()),
+      getDistributionChannel(),
+    ])
+      .then(([version, ch]) => {
+        setAppVersion(version);
+        setChannel(ch);
+      })
+      .catch(console.error);
   }, []);
 
   const handleBrowse = async () => {
@@ -263,7 +275,9 @@ export function SettingsModal({
             <h2 className="text-lg font-semibold px-2 py-2 mb-1">
               {t("settings.title")}
             </h2>
-            {CATEGORIES.map(({ id, labelKey, icon: Icon }) => (
+            {CATEGORIES.filter(
+              ({ id }) => !(id === "update" && channel === "mas"),
+            ).map(({ id, labelKey, icon: Icon }) => (
               <button
                 key={id}
                 type="button"

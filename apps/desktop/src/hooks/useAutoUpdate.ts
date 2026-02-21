@@ -9,6 +9,7 @@ import {
   UPDATE_INITIAL_DELAY_MS,
 } from "@/consts";
 import { useTranslation } from "@/i18n/I18nProvider";
+import { getDistributionChannel } from "@/lib/distribution";
 
 export function useAutoUpdate() {
   const { t } = useTranslation();
@@ -21,6 +22,9 @@ export function useAutoUpdate() {
   });
 
   const handleUpdate = useCallback(async (manual: boolean) => {
+    const channel = await getDistributionChannel();
+    if (channel === "mas") return;
+
     const translate = tRef.current;
 
     if (manual) {

@@ -38,7 +38,7 @@
     "category": "Productivity",
     "macOS": {
       "signingIdentity": null,
-      "entitlements": "entitlements.plist",
+      "entitlements": "entitlements.devid.plist",
       "minimumSystemVersion": "10.13"
     }
   },

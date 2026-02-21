@@ -1,5 +1,6 @@
-import { documentDir, join } from "@tauri-apps/api/path";
+import { appDataDir, documentDir, join } from "@tauri-apps/api/path";
 import { LazyStore } from "@tauri-apps/plugin-store";
+import { getDistributionChannel } from "@/lib/distribution";
 import { DEFAULT_ENABLED_IDS } from "@/lib/llm-services";
 import type { AppSettings } from "@/types/settings";
 
@@ -8,6 +9,11 @@ const store = new LazyStore("settings.json");
 const DEFAULT_DIR_NAME = "PromptPad";
 
 export async function getDefaultPromptDir(): Promise<string> {
+  const channel = await getDistributionChannel();
+  if (channel === "mas") {
+    const appData = await appDataDir();
+    return await join(appData, DEFAULT_DIR_NAME);
+  }
   const documents = await documentDir();
   return await join(documents, DEFAULT_DIR_NAME);
 }
