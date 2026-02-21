@@ -16,14 +16,9 @@ jobs:
         target: [aarch64-apple-darwin, x86_64-apple-darwin]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup-macos-build
         with:
-          node-version: 20
-      - uses: pnpm/action-setup@v2
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-      - run: pnpm install --frozen-lockfile
+          rust-targets: ${{ matrix.target }}
       - name: Write ASC API key to file
         run: echo "${{ secrets.APPLE_API_KEY_P8 }}" | base64 --decode > AuthKey.p8
       - uses: tauri-apps/tauri-action@v0

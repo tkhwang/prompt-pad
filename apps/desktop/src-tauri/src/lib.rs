@@ -130,7 +130,7 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
-            #[cfg(desktop)]
+            #[cfg(all(desktop, not(feature = "app-store")))]
             app.handle().plugin(tauri_plugin_updater::Builder::new().build())?;
             allow_saved_prompt_dir(&app.handle());
             Ok(())
