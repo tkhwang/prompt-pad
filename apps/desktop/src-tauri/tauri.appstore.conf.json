@@ -1,5 +1,6 @@
 {
   "bundle": {
+    "targets": ["app"],
     "createUpdaterArtifacts": false,
     "macOS": {
       "entitlements": "entitlements.mas.plist"
