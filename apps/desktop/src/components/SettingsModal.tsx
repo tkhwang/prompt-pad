@@ -233,10 +233,15 @@ export function SettingsModal({
   const [channel, setChannel] = useState<DistributionChannel>("direct");
 
   useEffect(() => {
-    import("@tauri-apps/api/app").then(({ getVersion }) =>
-      getVersion().then(setAppVersion),
-    );
-    getDistributionChannel().then(setChannel);
+    Promise.all([
+      import("@tauri-apps/api/app").then(({ getVersion }) => getVersion()),
+      getDistributionChannel(),
+    ])
+      .then(([version, ch]) => {
+        setAppVersion(version);
+        setChannel(ch);
+      })
+      .catch(console.error);
   }, []);
 
   const handleBrowse = async () => {
