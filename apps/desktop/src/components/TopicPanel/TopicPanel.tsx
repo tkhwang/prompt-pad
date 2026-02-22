@@ -1,4 +1,11 @@
-import { FolderOpen, Layers, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  FolderGit2,
+  FolderOpen,
+  Layers,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import {
   AlertDialog,
@@ -36,9 +43,11 @@ interface TopicPanelProps {
   totalPromptCount: number;
   selectedTopic: string | null;
   onSelectTopic: (topic: string | null) => void;
-  onCreateTopic: (name: string) => void;
+  onCreateTopic: (name: string) => Promise<void>;
   onRenameTopic: (oldName: string, newName: string) => void;
   onDeleteTopic: (name: string) => void;
+  onLinkRepo: (topicName: string) => Promise<void>;
+  onUnlinkRepo: (topicName: string) => void;
 }
 
 export function TopicPanel({
@@ -49,6 +58,8 @@ export function TopicPanel({
   onCreateTopic,
   onRenameTopic,
   onDeleteTopic,
+  onLinkRepo,
+  onUnlinkRepo,
 }: TopicPanelProps) {
   const { t } = useTranslation();
 
@@ -58,14 +69,15 @@ export function TopicPanel({
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleCreateSubmit = useCallback(() => {
+  const handleCreateSubmit = useCallback(async () => {
     const name = inputValue.trim();
     if (name) {
-      onCreateTopic(name);
+      await onCreateTopic(name);
       setInputValue("");
       setShowCreateDialog(false);
+      await onLinkRepo(name);
     }
-  }, [inputValue, onCreateTopic]);
+  }, [inputValue, onCreateTopic, onLinkRepo]);
 
   const handleRenameSubmit = useCallback(() => {
     const newName = inputValue.trim();
@@ -115,7 +127,13 @@ export function TopicPanel({
                     "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
                 )}
               >
-                <FolderOpen className="h-4 w-4 shrink-0" />
+                {topic.repoPath ? (
+                  <span className="flex items-center justify-center h-5 w-5 shrink-0 rounded bg-primary text-primary-foreground">
+                    <FolderGit2 className="h-3.5 w-3.5" />
+                  </span>
+                ) : (
+                  <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
+                )}
                 <span className="truncate">{topic.name}</span>
                 <span className="ml-auto text-xs text-muted-foreground">
                   {topic.promptCount}
@@ -123,6 +141,23 @@ export function TopicPanel({
               </button>
             </ContextMenuTrigger>
             <ContextMenuContent>
+              {topic.repoPath ? (
+                <>
+                  <ContextMenuItem onClick={() => onLinkRepo(topic.name)}>
+                    <FolderGit2 className="h-4 w-4 mr-2" />
+                    {t("topic_panel.change_repo")}
+                  </ContextMenuItem>
+                  <ContextMenuItem onClick={() => onUnlinkRepo(topic.name)}>
+                    <FolderOpen className="h-4 w-4 mr-2" />
+                    {t("topic_panel.unlink_repo")}
+                  </ContextMenuItem>
+                </>
+              ) : (
+                <ContextMenuItem onClick={() => onLinkRepo(topic.name)}>
+                  <FolderGit2 className="h-4 w-4 mr-2" />
+                  {t("topic_panel.link_repo")}
+                </ContextMenuItem>
+              )}
               <ContextMenuItem
                 onClick={() => {
                   setInputValue(topic.name);

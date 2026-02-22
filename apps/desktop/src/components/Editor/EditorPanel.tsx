@@ -1,4 +1,12 @@
-import { Eye, MessageSquareText, Pencil, Text, X } from "lucide-react";
+import { open } from "@tauri-apps/plugin-dialog";
+import {
+  Eye,
+  FolderGit2,
+  MessageSquareText,
+  Pencil,
+  Text,
+  X,
+} from "lucide-react";
 import {
   type RefObject,
   useCallback,
@@ -12,10 +20,17 @@ import { Editor } from "@/components/Editor/Editor";
 import { TemplatePanel } from "@/components/Editor/TemplatePanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BLOCK_SEPARATOR } from "@/consts";
+import { useRepoFiles } from "@/hooks/useRepoFiles";
 import { useTranslation } from "@/i18n/I18nProvider";
+import { splitBlocks } from "@/lib/blocks";
 import type { LlmService } from "@/lib/llm-services";
 import { extractVariables, substituteVariables } from "@/lib/template";
 import type { Prompt } from "@/types/prompt";
@@ -32,6 +47,7 @@ interface EditorPanelProps {
   onSendTo: (service: LlmService, content: string) => void;
   templatePanelCollapsed: boolean;
   onTemplatePanelCollapsedChange: (collapsed: boolean) => void;
+  topicRepoPath?: string;
 }
 
 export function EditorPanel({
@@ -46,11 +62,15 @@ export function EditorPanel({
   onSendTo,
   templatePanelCollapsed,
   onTemplatePanelCollapsedChange,
+  topicRepoPath,
 }: EditorPanelProps) {
   const { t } = useTranslation();
   const body = prompt?.body ?? "";
   const variables = useMemo(() => extractVariables(body), [body]);
   const prevVariablesRef = useRef<string[]>(variables);
+  const effectiveRepoPath = prompt?.repoPath ?? topicRepoPath;
+  const hasPromptOverride = !!prompt?.repoPath;
+  const { files: repoFiles } = useRepoFiles(effectiveRepoPath);
 
   // Sync prompt.templateValues when variables change
   useEffect(() => {
@@ -113,6 +133,24 @@ export function EditorPanel({
     [prompt, onUpdate],
   );
 
+  const handleLinkRepo = useCallback(async () => {
+    if (!prompt) return;
+    const selected = await open({
+      title: t("editor.repo_browse_title"),
+      directory: true,
+      recursive: true,
+      defaultPath: prompt.repoPath,
+    });
+    if (selected) {
+      onUpdate({ ...prompt, repoPath: selected });
+    }
+  }, [prompt, onUpdate, t]);
+
+  const handleUnlinkRepo = useCallback(() => {
+    if (!prompt) return;
+    onUpdate({ ...prompt, repoPath: undefined });
+  }, [prompt, onUpdate]);
+
   if (!prompt) {
     return (
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -151,6 +189,49 @@ export function EditorPanel({
             <h2 className="text-lg font-semibold truncate">{prompt.title}</h2>
           )}
         </div>
+        {/* Repo link button */}
+        {effectiveRepoPath ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                title={
+                  effectiveRepoPath.split("/").pop() ?? t("editor.repo_path")
+                }
+              >
+                <FolderGit2
+                  className={`h-4 w-4 ${hasPromptOverride ? "text-primary" : "text-primary/50"}`}
+                />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {hasPromptOverride ? (
+                <>
+                  <DropdownMenuItem onClick={handleLinkRepo}>
+                    {t("editor.change_repo")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleUnlinkRepo}>
+                    {t("editor.remove_repo_override")}
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <DropdownMenuItem onClick={handleLinkRepo}>
+                  {t("editor.override_repo")}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLinkRepo}
+            title={t("editor.link_repo")}
+          >
+            <FolderGit2 className="h-4 w-4 text-muted-foreground" />
+          </Button>
+        )}
         <Button variant="ghost" size="icon" onClick={toggleMode}>
           {editorMode === "view" ? (
             <Eye className="h-4 w-4" />
@@ -209,7 +290,12 @@ export function EditorPanel({
           className={`flex flex-1 flex-col min-w-0 ${editorMode === "view" && viewStyle === "markdown" ? "bg-muted/50" : ""}`}
         >
           {editorMode === "edit" ? (
-            <Editor prompt={prompt} onUpdate={onUpdate} bodyRef={bodyRef} />
+            <Editor
+              prompt={prompt}
+              onUpdate={onUpdate}
+              bodyRef={bodyRef}
+              repoFiles={repoFiles}
+            />
           ) : (
             <>
               {/* View style toggle — matches MarkdownToolbar height */}
@@ -241,20 +327,19 @@ export function EditorPanel({
               </div>
               <ScrollArea className="flex-1 min-h-0 px-5 py-4">
                 <div className="flex flex-col gap-3">
-                  {(hasVariables
-                    ? substituteVariables(prompt.body, templateValues)
-                    : prompt.body
-                  )
-                    .split(BLOCK_SEPARATOR)
-                    .map((block, index) => (
-                      <BlockCard
-                        key={`${prompt.id}-block-${index}`}
-                        content={block}
-                        viewStyle={viewStyle}
-                        enabledServices={enabledServices}
-                        onSendTo={onSendTo}
-                      />
-                    ))}
+                  {splitBlocks(
+                    hasVariables
+                      ? substituteVariables(prompt.body, templateValues)
+                      : prompt.body,
+                  ).map((block, index) => (
+                    <BlockCard
+                      key={`${prompt.id}-block-${index}`}
+                      content={block}
+                      viewStyle={viewStyle}
+                      enabledServices={enabledServices}
+                      onSendTo={onSendTo}
+                    />
+                  ))}
                 </div>
               </ScrollArea>
             </>

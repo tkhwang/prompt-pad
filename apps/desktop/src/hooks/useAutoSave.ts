@@ -17,19 +17,23 @@ export function useAutoSave(
     onSaveRef.current = onSave;
   }, [onSave]);
 
+  const clearPendingSave = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+
   const flush = useCallback(async () => {
     const latestPrompt = latestPromptRef.current;
     const latestSerialized = latestSerializedRef.current;
     if (!latestPrompt || latestSerialized === lastSavedRef.current) return;
 
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    clearPendingSave();
 
     await onSaveRef.current(latestPrompt);
     lastSavedRef.current = latestSerialized;
-  }, []);
+  }, [clearPendingSave]);
 
   useEffect(() => {
     latestPromptRef.current = prompt;
@@ -44,6 +48,7 @@ export function useAutoSave(
       body: prompt.body,
       tags: prompt.tags,
       templateValues: prompt.templateValues,
+      repoPath: prompt.repoPath,
     });
     latestSerializedRef.current = serialized;
 
@@ -56,10 +61,7 @@ export function useAutoSave(
 
     if (serialized === lastSavedRef.current) return;
 
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    clearPendingSave();
 
     timeoutRef.current = setTimeout(async () => {
       const currentPrompt = latestPromptRef.current;
@@ -71,13 +73,8 @@ export function useAutoSave(
       timeoutRef.current = null;
     }, delay);
 
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-    };
-  }, [prompt, delay]);
+    return () => clearPendingSave();
+  }, [prompt, delay, clearPendingSave]);
 
   return flush;
 }

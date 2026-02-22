@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { ask, open } from "@tauri-apps/plugin-dialog";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CreateTopicDialog } from "@/components/CreateTopicDialog";
 import { EditorPanel } from "@/components/Editor/EditorPanel";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
@@ -58,6 +59,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     createTopic,
     renameTopic,
     deleteTopic,
+    updateTopicMeta,
   } = usePrompts(settings?.promptDir ?? "");
 
   const { query, setQuery, filtered } = useSearch(prompts);
@@ -65,6 +67,51 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"compact" | "cozy" | "detailed">(
     "cozy",
+  );
+
+  const handleLinkRepoToTopic = useCallback(
+    async (topicName: string) => {
+      try {
+        const confirmed = await ask(t("topic_panel.link_repo_confirm"), {
+          title: t("topic_panel.link_repo"),
+        });
+        if (!confirmed) return;
+        const selected = await open({
+          title: t("editor.repo_browse_title"),
+          directory: true,
+          recursive: true,
+        });
+        if (selected) {
+          await updateTopicMeta(topicName, { repoPath: selected });
+        }
+      } catch {
+        // silently ignore — dialog cancelled or FS error
+      }
+    },
+    [t, updateTopicMeta],
+  );
+
+  const handleUnlinkRepoFromTopic = useCallback(
+    async (topicName: string) => {
+      await updateTopicMeta(topicName, { repoPath: undefined });
+    },
+    [updateTopicMeta],
+  );
+
+  const pendingNewPromptRef = useRef(false);
+  const createPromptInTopicRef = useRef<((name: string) => void) | undefined>(
+    undefined,
+  );
+
+  const handleAfterCreateTopic = useCallback(
+    async (name: string) => {
+      await handleLinkRepoToTopic(name);
+      if (pendingNewPromptRef.current) {
+        pendingNewPromptRef.current = false;
+        createPromptInTopicRef.current?.(name);
+      }
+    },
+    [handleLinkRepoToTopic],
   );
 
   const {
@@ -82,7 +129,17 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     handleCreateTopicSubmit,
     handleRenameTopic,
     handleDeleteTopic,
-  } = useTopicManager({ createTopic, renameTopic, deleteTopic });
+  } = useTopicManager({
+    createTopic,
+    renameTopic,
+    deleteTopic,
+    onAfterCreateTopic: handleAfterCreateTopic,
+  });
+
+  const handleRequestCreateTopic = useCallback(() => {
+    pendingNewPromptRef.current = true;
+    handleNewTopicShortcut();
+  }, [handleNewTopicShortcut]);
 
   const enabledServices = useMemo(() => {
     if (!settings) return [];
@@ -116,7 +173,10 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     selectedTopic,
     setSelectedTopic,
     topics,
+    onRequestCreateTopic: handleRequestCreateTopic,
   });
+
+  createPromptInTopicRef.current = handleSelectTopicAndCreate;
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -150,6 +210,12 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     },
     [updateSettings, onLanguageOverride],
   );
+
+  const currentTopicRepoPath = useMemo(() => {
+    if (!editingPrompt) return undefined;
+    const topic = topics.find((t) => t.name === editingPrompt.topic);
+    return topic?.repoPath;
+  }, [editingPrompt, topics]);
 
   const handleRerunSetup = useCallback(() => {
     setSettingsOpen(false);
@@ -202,6 +268,8 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
             onCreateTopic={createTopic}
             onRenameTopic={handleRenameTopic}
             onDeleteTopic={handleDeleteTopic}
+            onLinkRepo={handleLinkRepoToTopic}
+            onUnlinkRepo={handleUnlinkRepoFromTopic}
           />
         </div>
 
@@ -254,6 +322,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
               onTemplatePanelCollapsedChange={(collapsed) =>
                 updateSettings({ templatePanelCollapsed: collapsed })
               }
+              topicRepoPath={currentTopicRepoPath}
             />
           </div>
         </div>

@@ -20,20 +20,13 @@ jobs:
   build-mas:
     runs-on: macos-latest
     steps:
-      # ── 1. Checkout ──────────────────────────────────────────────
+      # ── 1. Checkout + toolchain ─────────────────────────────────
       - uses: actions/checkout@v4
-
-      # ── 2. Toolchain setup ───────────────────────────────────────
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup-macos-build
         with:
-          node-version: 20
-      - uses: pnpm/action-setup@v2
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-apple-darwin,x86_64-apple-darwin
-      - run: pnpm install --frozen-lockfile
+          rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
 
-      # ── 3. Keychain + certificate import ─────────────────────────
+      # ── 2. Keychain + certificate import ─────────────────────────
       - name: Create keychain and import certificates
         env:
           MAS_APP_CERT: ${{ secrets.MAS_APP_CERT }}
@@ -78,7 +71,7 @@ jobs:
 
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
 
-      # ── 4. Provisioning profile install ──────────────────────────
+      # ── 3. Provisioning profile install ──────────────────────────
       - name: Install provisioning profile
         env:
           MAS_PROVISIONING_PROFILE: ${{ secrets.MAS_PROVISIONING_PROFILE }}
@@ -88,17 +81,21 @@ jobs:
           echo "$MAS_PROVISIONING_PROFILE" | base64 --decode > "$PROFILE_DIR/PromptPad_MAS.provisionprofile"
           echo "PROVISIONING_PROFILE_PATH=$PROFILE_DIR/PromptPad_MAS.provisionprofile" >> "$GITHUB_ENV"
 
-      # ── 5. Replace $TEAM_ID in entitlements ──────────────────────
+      # ── 4. Replace $TEAM_ID in entitlements ──────────────────────
       - name: Substitute TEAM_ID in entitlements
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
+          if [ -z "$APPLE_TEAM_ID" ]; then
+            echo "::error::APPLE_TEAM_ID secret is not set"
+            exit 1
+          fi
           sed -i '' "s/\$TEAM_ID/${APPLE_TEAM_ID}/g" \
             apps/desktop/src-tauri/entitlements.mas.plist
           echo "Entitlements after substitution:"
           cat apps/desktop/src-tauri/entitlements.mas.plist
 
-      # ── 6. Tauri build (universal binary) ────────────────────────
+      # ── 5. Tauri build (universal binary) ────────────────────────
       - name: Build for App Store
         run: |
           pnpm tauri build \
@@ -107,7 +104,7 @@ jobs:
             --config src-tauri/tauri.appstore.conf.json
         working-directory: apps/desktop
 
-      # ── 7. Read version + set build number ───────────────────────
+      # ── 6. Read version + set build number ───────────────────────
       - name: Set version and build number
         env:
           BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
@@ -124,12 +121,12 @@ jobs:
           echo "APP_PATH=$APP_PATH" >> "$GITHUB_ENV"
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      # ── 8. Embed provisioning profile ────────────────────────────
+      # ── 7. Embed provisioning profile ────────────────────────────
       - name: Embed provisioning profile in app
         run: |
           cp "$PROVISIONING_PROFILE_PATH" "$APP_PATH/Contents/embedded.provisionprofile"
 
-      # ── 9. Deep codesign ─────────────────────────────────────────
+      # ── 8. Deep codesign ─────────────────────────────────────────
       - name: Codesign app bundle
         run: |
           ENTITLEMENTS="apps/desktop/src-tauri/entitlements.mas.plist"
@@ -144,7 +141,7 @@ jobs:
           fi
 
           CODESIGN_ARGS=(
-            --force --timestamp --options runtime
+            --force --timestamp
             --entitlements "$ENTITLEMENTS"
             --sign "$APP_IDENTITY"
             --keychain "$KEYCHAIN_PATH"
@@ -182,7 +179,7 @@ jobs:
           codesign --verify --deep --strict "$APP_PATH"
           echo "Codesign verification passed"
 
-      # ── 10. productbuild (.pkg) ──────────────────────────────────
+      # ── 9. productbuild (.pkg) ───────────────────────────────────
       - name: Create .pkg installer
         env:
           BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
@@ -207,7 +204,7 @@ jobs:
           echo "Created: $PKG_PATH"
           ls -lh "$PKG_PATH"
 
-      # ── 11. Write ASC API key ────────────────────────────────────
+      # ── 10. Write ASC API key ───────────────────────────────────
       - name: Write App Store Connect API key
         env:
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
@@ -216,7 +213,10 @@ jobs:
           API_KEY_PATH="/tmp/AuthKey_${APPLE_API_KEY}.p8"
           echo "$APPLE_API_KEY_P8" | base64 --decode > "$API_KEY_PATH"
 
-      # ── 12. Validate with altool ─────────────────────────────────
+      # ── 11. Validate with altool ─────────────────────────────────
+      # NOTE: xcrun altool is deprecated. Apple recommends Transporter CLI
+      # or xcrun notarytool for notarization. For MAS uploads, altool still
+      # works but may be removed in a future Xcode release.
       - name: Validate .pkg with App Store Connect
         env:
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
@@ -229,7 +229,7 @@ jobs:
             --apiKey "$APPLE_API_KEY" \
             --apiIssuer "$APPLE_API_ISSUER"
 
-      # ── 13. Upload to App Store Connect ──────────────────────────
+      # ── 12. Upload to App Store Connect ─────────────────────────
       - name: Upload .pkg to App Store Connect
         if: ${{ inputs.dry_run == false }}
         env:
@@ -243,7 +243,7 @@ jobs:
             --apiKey "$APPLE_API_KEY" \
             --apiIssuer "$APPLE_API_ISSUER"
 
-      # ── 14. Upload artifact ──────────────────────────────────────
+      # ── 13. Upload artifact ─────────────────────────────────────
       - name: Upload .pkg artifact
         uses: actions/upload-artifact@v4
         with:
@@ -251,12 +251,12 @@ jobs:
           path: ${{ env.PKG_PATH }}
           retention-days: 30
 
-      # ── 15. Cleanup ──────────────────────────────────────────────
+      # ── 14. Cleanup ─────────────────────────────────────────────
       - name: Cleanup
         if: always()
         run: |
           # Delete temporary keychain
-          if [ -n "$KEYCHAIN_PATH" ] && [ -f "$KEYCHAIN_PATH" ]; then
+          if [ -n "$KEYCHAIN_PATH" ] && [ -e "$KEYCHAIN_PATH" ]; then
             security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
           fi
 

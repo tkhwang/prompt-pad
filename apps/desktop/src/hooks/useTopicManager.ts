@@ -1,20 +1,24 @@
 import { useCallback, useRef, useState } from "react";
 
 interface UseTopicManagerDeps {
-  createTopic: (name: string) => void;
+  createTopic: (name: string) => Promise<void>;
   renameTopic: (oldName: string, newName: string) => Promise<string>;
   deleteTopic: (name: string) => Promise<void>;
+  onAfterCreateTopic?: (name: string) => Promise<void>;
 }
 
 export function useTopicManager({
   createTopic,
   renameTopic,
   deleteTopic,
+  onAfterCreateTopic,
 }: UseTopicManagerDeps) {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [topicPanelOpen, setTopicPanelOpen] = useState(false);
   const [createTopicDialogOpen, setCreateTopicDialogOpen] = useState(false);
   const [topicNameInput, setTopicNameInput] = useState("");
+  const topicNameInputRef = useRef(topicNameInput);
+  topicNameInputRef.current = topicNameInput;
 
   // Retain last non-null topic for TopicPanel close animation
   const lastTopicRef = useRef<string | null>(null);
@@ -42,14 +46,15 @@ export function useTopicManager({
     setCreateTopicDialogOpen(true);
   }, []);
 
-  const handleCreateTopicSubmit = useCallback(() => {
-    const name = topicNameInput.trim();
+  const handleCreateTopicSubmit = useCallback(async () => {
+    const name = topicNameInputRef.current.trim();
     if (name) {
-      createTopic(name);
+      await createTopic(name);
       setTopicNameInput("");
       setCreateTopicDialogOpen(false);
+      await onAfterCreateTopic?.(name);
     }
-  }, [topicNameInput, createTopic]);
+  }, [createTopic, onAfterCreateTopic]);
 
   const handleRenameTopic = useCallback(
     async (oldName: string, newName: string) => {

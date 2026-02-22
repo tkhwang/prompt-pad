@@ -110,6 +110,84 @@ fn export_data_zip(app: AppHandle, source_dir: String, output_path: String) -> R
     Ok(())
 }
 
+const IGNORED_DIRS: &[&str] = &[
+    ".git",
+    "node_modules",
+    "target",
+    "dist",
+    "build",
+    "__pycache__",
+    ".next",
+    ".nuxt",
+    ".output",
+    ".venv",
+    "venv",
+    ".tox",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".cache",
+    ".turbo",
+    "coverage",
+];
+
+fn collect_repo_files(
+    dir: &Path,
+    root: &Path,
+    files: &mut Vec<String>,
+    max_files: usize,
+) -> Result<(), String> {
+    if files.len() >= max_files {
+        return Ok(());
+    }
+    let entries = fs::read_dir(dir).map_err(|e| format!("Failed to read directory: {e}"))?;
+    for entry in entries {
+        if files.len() >= max_files {
+            return Ok(());
+        }
+        let entry = entry.map_err(|e| format!("Failed to read entry: {e}"))?;
+        let path = entry.path();
+        let metadata = match fs::symlink_metadata(&path) {
+            Ok(m) => m,
+            Err(e) => {
+                eprintln!("Could not read metadata for {:?}, skipping: {}", path, e);
+                continue;
+            }
+        };
+        if metadata.file_type().is_symlink() {
+            continue;
+        }
+        if metadata.is_dir() {
+            let dir_name = path
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
+            if IGNORED_DIRS.contains(&dir_name.as_str()) {
+                continue;
+            }
+            collect_repo_files(&path, root, files, max_files)?;
+        } else {
+            let relative = path
+                .strip_prefix(root)
+                .map_err(|e| format!("Path error: {e}"))?;
+            files.push(relative.to_string_lossy().replace('\\', "/"));
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn list_repo_files(repo_dir: String, max_files: Option<usize>) -> Result<Vec<String>, String> {
+    let root = Path::new(&repo_dir);
+    if !root.is_dir() {
+        return Err("Repository directory does not exist".into());
+    }
+    let limit = max_files.unwrap_or(10_000);
+    let mut files = Vec::new();
+    collect_repo_files(root, root, &mut files, limit)?;
+    files.sort();
+    Ok(files)
+}
+
 #[tauri::command]
 fn get_distribution_channel() -> &'static str {
     if cfg!(feature = "app-store") {
@@ -122,15 +200,16 @@ fn get_distribution_channel() -> &'static str {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![export_data_zip, get_distribution_channel])
+        .invoke_handler(tauri::generate_handler![export_data_zip, get_distribution_channel, list_repo_files])
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_persisted_scope::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
-            #[cfg(desktop)]
+            #[cfg(all(desktop, not(feature = "app-store")))]
             app.handle().plugin(tauri_plugin_updater::Builder::new().build())?;
             allow_saved_prompt_dir(&app.handle());
             Ok(())

@@ -8,9 +8,11 @@
     "dev:desktop": "turbo run dev --filter=@prompt-pad/desktop",
     "dev:backend": "turbo run dev --filter=@prompt-pad/backend",
     "tauri:dev": "pnpm --filter @prompt-pad/desktop tauri dev",
+    "tauri:dev:mas": "pnpm --filter @prompt-pad/desktop tauri dev --features app-store --config src-tauri/tauri.appstore.conf.json",
     "tauri:build": "pnpm --filter @prompt-pad/desktop tauri build",
     "build:desktop": "turbo run build --filter=@prompt-pad/desktop",
     "build:backend": "turbo run build --filter=@prompt-pad/backend",
+    "build:desktop:mas": "rustup target add x86_64-apple-darwin 2>/dev/null; pnpm --filter @prompt-pad/desktop tauri build --target universal-apple-darwin --features app-store --config src-tauri/tauri.appstore.conf.json",
     "clean": "rimraf .turbo apps/*/dist packages/*/dist apps/*/*.tsbuildinfo packages/*/*.tsbuildinfo apps/*/node_modules packages/*/node_modules node_modules",
     "release": "bumpp --files package.json apps/*/package.json packages/*/package.json apps/desktop/src-tauri/Cargo.toml apps/desktop/src-tauri/tauri.conf.json"
   },

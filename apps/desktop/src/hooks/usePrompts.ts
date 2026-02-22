@@ -1,5 +1,6 @@
 import { join } from "@tauri-apps/api/path";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { TopicMeta } from "@/lib/fs";
 import {
   deletePromptFile,
   ensureDir,
@@ -7,9 +8,12 @@ import {
   listMarkdownFiles,
   listTopicDirs,
   readPromptFile,
+  readTopicMeta,
   removeDir,
   renameEntry,
+  replacePathPrefix,
   writePromptFile,
+  writeTopicMeta,
 } from "@/lib/fs";
 import {
   parseMarkdown,
@@ -17,22 +21,6 @@ import {
   titleToFileName,
 } from "@/lib/markdown";
 import type { Prompt, Topic } from "@/types/prompt";
-
-function replacePathPrefix(
-  targetPath: string,
-  fromPath: string,
-  toPath: string,
-): string {
-  if (targetPath === fromPath) return toPath;
-
-  const separator = fromPath.includes("\\") ? "\\" : "/";
-  const fromWithBoundary = fromPath.endsWith(separator)
-    ? fromPath
-    : `${fromPath}${separator}`;
-
-  if (!targetPath.startsWith(fromWithBoundary)) return targetPath;
-  return `${toPath}${targetPath.slice(fromPath.length)}`;
-}
 
 export function usePrompts(promptDir: string) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -58,6 +46,7 @@ export function usePrompts(promptDir: string) {
       for (const topicName of topicNames) {
         const topicPath = await join(dir, topicName);
         const files = await listMarkdownFiles(topicPath);
+        const meta = await readTopicMeta(topicPath);
 
         for (const fileName of files) {
           const filePath = await join(topicPath, fileName);
@@ -70,6 +59,7 @@ export function usePrompts(promptDir: string) {
           name: topicName,
           path: topicPath,
           promptCount: files.length,
+          repoPath: meta.repoPath,
         });
       }
 
@@ -144,8 +134,9 @@ export function usePrompts(promptDir: string) {
     // Derive new filename from current title
     const newFileName = titleToFileName(withTimestamp.title);
     const oldFilePath = updated.filePath;
-    const dir = oldFilePath.substring(0, oldFilePath.lastIndexOf("/"));
-    const oldFileName = oldFilePath.split("/").pop() || "";
+    const lastSlash = oldFilePath.lastIndexOf("/");
+    const dir = oldFilePath.substring(0, lastSlash);
+    const oldFileName = oldFilePath.substring(lastSlash + 1);
 
     let finalPrompt = withTimestamp;
 
@@ -250,6 +241,32 @@ export function usePrompts(promptDir: string) {
     [promptDir],
   );
 
+  const updateTopicMeta = useCallback(
+    async (topicName: string, meta: TopicMeta) => {
+      const topicPath = await join(promptDir, topicName);
+      await writeTopicMeta(topicPath, meta);
+      setTopics((prev) => {
+        const found = prev.some((t) => t.name === topicName);
+        if (found) {
+          return prev.map((t) =>
+            t.name === topicName ? { ...t, repoPath: meta.repoPath } : t,
+          );
+        }
+        // Topic not yet in state (race condition fallback) — add it
+        return [
+          ...prev,
+          {
+            name: topicName,
+            path: topicPath,
+            promptCount: 0,
+            repoPath: meta.repoPath,
+          },
+        ];
+      });
+    },
+    [promptDir],
+  );
+
   const deleteTopic = useCallback(
     async (name: string) => {
       const topicPath = await join(promptDir, name);
@@ -286,5 +303,6 @@ export function usePrompts(promptDir: string) {
     createTopic,
     renameTopic,
     deleteTopic,
+    updateTopicMeta,
   };
 }

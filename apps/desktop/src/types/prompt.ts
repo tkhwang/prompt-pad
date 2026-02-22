@@ -8,10 +8,12 @@ export interface Prompt {
   created: string;
   updated: string;
   templateValues?: Record<string, string>;
+  repoPath?: string;
 }
 
 export interface Topic {
   name: string;
   path: string;
   promptCount: number;
+  repoPath?: string;
 }

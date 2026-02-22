@@ -7,7 +7,7 @@ edition = "2024"
 license = "MIT"
 
 [features]
-default = []
+default = ["tauri-plugin-updater"]
 app-store = []
 
 [lib]
@@ -26,6 +26,7 @@ tauri-plugin-dialog = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-store = "2"
 tauri-plugin-shell = "2"
-tauri-plugin-updater = "2"
+tauri-plugin-updater = { version = "2", optional = true }
 tauri-plugin-process = "2"
+tauri-plugin-persisted-scope = "2"
 zip = "2"

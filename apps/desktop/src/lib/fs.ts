@@ -62,6 +62,52 @@ export async function renameEntry(
   await rename(oldPath, newPath);
 }
 
+export interface TopicMeta {
+  repoPath?: string;
+}
+
+const TOPIC_META_FILE = "_topic.json";
+
+export async function readTopicMeta(topicDir: string): Promise<TopicMeta> {
+  try {
+    const metaPath = await join(topicDir, TOPIC_META_FILE);
+    if (!(await exists(metaPath))) return {};
+    const content = await readTextFile(metaPath);
+    return JSON.parse(content) as TopicMeta;
+  } catch {
+    return {};
+  }
+}
+
+export async function writeTopicMeta(
+  topicDir: string,
+  meta: TopicMeta,
+): Promise<void> {
+  const metaPath = await join(topicDir, TOPIC_META_FILE);
+  const hasContent = Object.values(meta).some((v) => v !== undefined);
+  if (hasContent) {
+    await writeTextFile(metaPath, JSON.stringify(meta, null, 2));
+  } else if (await exists(metaPath)) {
+    await remove(metaPath);
+  }
+}
+
+export function replacePathPrefix(
+  targetPath: string,
+  fromPath: string,
+  toPath: string,
+): string {
+  if (targetPath === fromPath) return toPath;
+
+  const separator = fromPath.includes("\\") ? "\\" : "/";
+  const fromWithBoundary = fromPath.endsWith(separator)
+    ? fromPath
+    : `${fromPath}${separator}`;
+
+  if (!targetPath.startsWith(fromWithBoundary)) return targetPath;
+  return `${toPath}${targetPath.slice(fromPath.length)}`;
+}
+
 export async function findAvailablePath(
   directory: string,
   baseName: string,

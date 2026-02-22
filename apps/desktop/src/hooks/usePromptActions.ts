@@ -22,6 +22,7 @@ interface UsePromptActionsDeps {
   selectedTopic: string | null;
   setSelectedTopic: (topic: string | null) => void;
   topics: Topic[];
+  onRequestCreateTopic?: () => void;
 }
 
 export function usePromptActions({
@@ -34,6 +35,7 @@ export function usePromptActions({
   selectedTopic,
   setSelectedTopic,
   topics,
+  onRequestCreateTopic,
 }: UsePromptActionsDeps) {
   const [editingPrompt, setEditingPrompt] = useState(selectedPrompt);
   const [editorMode, setEditorMode] = useState<"view" | "edit">("view");
@@ -121,7 +123,7 @@ export function usePromptActions({
     }
 
     if (topics.length === 0) {
-      handleCreatePromptInTopic("General");
+      onRequestCreateTopic?.();
       return;
     }
 
@@ -131,6 +133,7 @@ export function usePromptActions({
     editingPrompt?.topic,
     topics.length,
     handleCreatePromptInTopic,
+    onRequestCreateTopic,
   ]);
 
   const handleSelectTopicAndCreate = useCallback(
@@ -151,34 +154,39 @@ export function usePromptActions({
     [],
   );
 
+  const copyToClipboard = useCallback(
+    async (text: string) => {
+      await writeText(text);
+      toast.success(t("editor.copied"));
+    },
+    [t],
+  );
+
   const handleCopy = useCallback(async () => {
     if (editingPrompt) {
       const text = resolvePromptBody(editingPrompt);
-      await writeText(text);
-      toast.success(t("editor.copied"));
+      await copyToClipboard(text);
     }
-  }, [editingPrompt, t, resolvePromptBody]);
+  }, [editingPrompt, copyToClipboard, resolvePromptBody]);
 
   const handleSendTo = useCallback(
     async (service: LlmService) => {
       if (!editingPrompt) return;
       const text = resolvePromptBody(editingPrompt);
-      await writeText(text);
-      toast.success(t("editor.copied"));
+      await copyToClipboard(text);
       const url = buildServiceUrl(service, text);
       await open(url);
     },
-    [editingPrompt, t, resolvePromptBody],
+    [editingPrompt, copyToClipboard, resolvePromptBody],
   );
 
   const handleBlockSendTo = useCallback(
     async (service: LlmService, content: string) => {
-      await writeText(content);
-      toast.success(t("editor.copied"));
+      await copyToClipboard(content);
       const url = buildServiceUrl(service, content);
       await open(url);
     },
-    [t],
+    [copyToClipboard],
   );
 
   const handleTitleEnter = useCallback(() => {

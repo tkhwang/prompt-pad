@@ -1,0 +1,20 @@
+name: Setup macOS Build
+description: Shared toolchain setup for macOS builds (Node, pnpm, Rust, dependencies)
+
+inputs:
+  rust-targets:
+    description: Comma-separated Rust target triples
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - uses: pnpm/action-setup@v2
+    - uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ inputs.rust-targets }}
+    - run: pnpm install --frozen-lockfile
+      shell: bash
