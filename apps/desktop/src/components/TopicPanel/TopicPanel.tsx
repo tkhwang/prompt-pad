@@ -128,9 +128,11 @@ export function TopicPanel({
                 )}
               >
                 {topic.repoPath ? (
-                  <FolderGit2 className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="flex items-center justify-center h-5 w-5 shrink-0 rounded bg-primary text-primary-foreground">
+                    <FolderGit2 className="h-3.5 w-3.5" />
+                  </span>
                 ) : (
-                  <FolderOpen className="h-4 w-4 shrink-0" />
+                  <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
                 )}
                 <span className="truncate">{topic.name}</span>
                 <span className="ml-auto text-xs text-muted-foreground">

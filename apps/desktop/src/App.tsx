@@ -1,5 +1,5 @@
 import { ask, open } from "@tauri-apps/plugin-dialog";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CreateTopicDialog } from "@/components/CreateTopicDialog";
 import { EditorPanel } from "@/components/Editor/EditorPanel";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
@@ -94,6 +94,22 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     [updateTopicMeta],
   );
 
+  const pendingNewPromptRef = useRef(false);
+  const createPromptInTopicRef = useRef<((name: string) => void) | undefined>(
+    undefined,
+  );
+
+  const handleAfterCreateTopic = useCallback(
+    async (name: string) => {
+      await handleLinkRepoToTopic(name);
+      if (pendingNewPromptRef.current) {
+        pendingNewPromptRef.current = false;
+        createPromptInTopicRef.current?.(name);
+      }
+    },
+    [handleLinkRepoToTopic],
+  );
+
   const {
     selectedTopic,
     setSelectedTopic,
@@ -113,8 +129,13 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     createTopic,
     renameTopic,
     deleteTopic,
-    onAfterCreateTopic: handleLinkRepoToTopic,
+    onAfterCreateTopic: handleAfterCreateTopic,
   });
+
+  const handleRequestCreateTopic = useCallback(() => {
+    pendingNewPromptRef.current = true;
+    handleNewTopicShortcut();
+  }, [handleNewTopicShortcut]);
 
   const enabledServices = useMemo(() => {
     if (!settings) return [];
@@ -148,7 +169,10 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     selectedTopic,
     setSelectedTopic,
     topics,
+    onRequestCreateTopic: handleRequestCreateTopic,
   });
+
+  createPromptInTopicRef.current = handleSelectTopicAndCreate;
 
   // Keyboard shortcuts
   useEffect(() => {

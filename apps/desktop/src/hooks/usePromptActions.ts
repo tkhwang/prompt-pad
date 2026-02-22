@@ -22,6 +22,7 @@ interface UsePromptActionsDeps {
   selectedTopic: string | null;
   setSelectedTopic: (topic: string | null) => void;
   topics: Topic[];
+  onRequestCreateTopic?: () => void;
 }
 
 export function usePromptActions({
@@ -34,6 +35,7 @@ export function usePromptActions({
   selectedTopic,
   setSelectedTopic,
   topics,
+  onRequestCreateTopic,
 }: UsePromptActionsDeps) {
   const [editingPrompt, setEditingPrompt] = useState(selectedPrompt);
   const [editorMode, setEditorMode] = useState<"view" | "edit">("view");
@@ -121,7 +123,7 @@ export function usePromptActions({
     }
 
     if (topics.length === 0) {
-      handleCreatePromptInTopic("General");
+      onRequestCreateTopic?.();
       return;
     }
 
@@ -131,6 +133,7 @@ export function usePromptActions({
     editingPrompt?.topic,
     topics.length,
     handleCreatePromptInTopic,
+    onRequestCreateTopic,
   ]);
 
   const handleSelectTopicAndCreate = useCallback(
