@@ -1,8 +1,11 @@
 import type { RefObject } from "react";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
+import {
+  BlockEditor,
+  type BlockEditorHandle,
+} from "@/components/Editor/BlockEditor";
 import type { Prompt } from "@/types/prompt";
 import { MarkdownToolbar } from "./MarkdownToolbar";
-import { PromptEditor } from "./PromptEditor";
 
 interface EditorProps {
   prompt: Prompt;
@@ -11,22 +14,28 @@ interface EditorProps {
 }
 
 export function Editor({ prompt, onUpdate, bodyRef }: EditorProps) {
-  const handleBodyChange = useCallback(
-    (newBody: string) => {
-      onUpdate({ ...prompt, body: newBody });
-    },
-    [prompt, onUpdate],
-  );
+  const fallbackRef = useRef<HTMLTextAreaElement | null>(null);
+  // Use bodyRef (from usePromptActions) as the activeBlockRef so that
+  // external focus management (title Enter → body focus) works seamlessly.
+  const activeBlockRef = bodyRef ?? fallbackRef;
+  const blockEditorHandleRef = useRef<BlockEditorHandle | null>(null);
+
+  const handleActiveBlockTextChange = useCallback((newText: string) => {
+    blockEditorHandleRef.current?.updateActiveBlock(newText);
+  }, []);
 
   return (
     <>
-      {bodyRef && (
-        <MarkdownToolbar
-          textareaRef={bodyRef}
-          onTextChange={handleBodyChange}
-        />
-      )}
-      <PromptEditor prompt={prompt} onUpdate={onUpdate} bodyRef={bodyRef} />
+      <MarkdownToolbar
+        textareaRef={activeBlockRef}
+        onTextChange={handleActiveBlockTextChange}
+      />
+      <BlockEditor
+        prompt={prompt}
+        onUpdate={onUpdate}
+        activeBlockRef={activeBlockRef}
+        handleRef={blockEditorHandleRef}
+      />
     </>
   );
 }

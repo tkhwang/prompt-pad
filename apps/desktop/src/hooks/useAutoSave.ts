@@ -44,6 +44,7 @@ export function useAutoSave(
       body: prompt.body,
       tags: prompt.tags,
       templateValues: prompt.templateValues,
+      repoPath: prompt.repoPath,
     });
     latestSerializedRef.current = serialized;
 

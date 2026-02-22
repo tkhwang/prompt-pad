@@ -132,6 +132,9 @@ export const ko: DeepStringify<typeof en> = {
     sendTo: "{{service}}",
     view: "보기",
     edit: "편집",
+    delete_block: "블록 삭제",
+    link_repo: "저장소 연결...",
+    repo_path: "저장소",
   },
 
   sidebar: {

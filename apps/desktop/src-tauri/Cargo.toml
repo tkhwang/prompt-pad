@@ -28,4 +28,5 @@ tauri-plugin-store = "2"
 tauri-plugin-shell = "2"
 tauri-plugin-updater = { version = "2", optional = true }
 tauri-plugin-process = "2"
+tauri-plugin-persisted-scope = "2"
 zip = "2"

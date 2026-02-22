@@ -128,6 +128,9 @@ export const en = {
     sendTo: "{{service}}",
     view: "View",
     edit: "Edit",
+    delete_block: "Delete block",
+    link_repo: "Link repository...",
+    repo_path: "Repository",
   },
 
   sidebar: {

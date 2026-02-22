@@ -7,6 +7,7 @@ interface Frontmatter {
   updated: string;
   tags: string[];
   templateValues?: Record<string, string>;
+  repoPath?: string;
 }
 
 export function parseMarkdown(
@@ -37,6 +38,7 @@ export function parseMarkdown(
     created: frontmatter.created || now,
     updated: frontmatter.updated || now,
     templateValues: frontmatter.templateValues,
+    repoPath: frontmatter.repoPath,
   };
 }
 
@@ -57,6 +59,10 @@ export function serializeMarkdown(prompt: Prompt): string {
     }
   }
 
+  if (prompt.repoPath) {
+    frontmatter.repoPath = prompt.repoPath;
+  }
+
   const yaml = dump(frontmatter, {
     noRefs: true,
     lineWidth: -1,
@@ -75,6 +81,7 @@ function parseFrontmatter(yaml: string): Partial<Frontmatter> {
     const updated = asString(parsed.updated);
     const tags = asStringArray(parsed.tags);
     const templateValues = asStringRecord(parsed.templateValues);
+    const repoPath = asString(parsed.repoPath);
 
     return {
       ...(title ? { title } : {}),
@@ -82,6 +89,7 @@ function parseFrontmatter(yaml: string): Partial<Frontmatter> {
       ...(updated ? { updated } : {}),
       ...(tags ? { tags } : {}),
       ...(templateValues ? { templateValues } : {}),
+      ...(repoPath ? { repoPath } : {}),
     };
   } catch {
     return {};
