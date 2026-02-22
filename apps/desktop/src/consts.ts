@@ -6,6 +6,8 @@ export const UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1_000;
 export const RELEASE_URL =
   "https://github.com/tkhwang/prompt-pad/releases/latest";
 
+export const MAX_MENTION_QUERY_LENGTH = 20;
+
 export const HORIZONTAL_RULE = "---";
 export const EM_DASH = "—"; // macOS auto-converts --- to —
 export const BLOCK_SEPARATOR = new RegExp(

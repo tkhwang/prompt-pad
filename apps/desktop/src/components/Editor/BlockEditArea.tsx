@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { FileMentionPopup } from "@/components/Editor/FileMentionPopup";
+import { MAX_MENTION_QUERY_LENGTH } from "@/consts";
 import { useTranslation } from "@/i18n/I18nProvider";
 
 interface BlockEditAreaProps {
@@ -86,7 +87,7 @@ export const BlockEditArea = forwardRef<
 
       const query = textBeforeCursor.slice(atIndex + 1);
       // Close popup if query is too long with spaces
-      if (/\s/.test(query) && query.length > 20) {
+      if (/\s/.test(query) && query.length > MAX_MENTION_QUERY_LENGTH) {
         setMention(null);
         return;
       }
