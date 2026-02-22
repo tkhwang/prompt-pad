@@ -11,6 +11,7 @@ import {
   readTopicMeta,
   removeDir,
   renameEntry,
+  replacePathPrefix,
   writePromptFile,
   writeTopicMeta,
 } from "@/lib/fs";
@@ -20,22 +21,6 @@ import {
   titleToFileName,
 } from "@/lib/markdown";
 import type { Prompt, Topic } from "@/types/prompt";
-
-function replacePathPrefix(
-  targetPath: string,
-  fromPath: string,
-  toPath: string,
-): string {
-  if (targetPath === fromPath) return toPath;
-
-  const separator = fromPath.includes("\\") ? "\\" : "/";
-  const fromWithBoundary = fromPath.endsWith(separator)
-    ? fromPath
-    : `${fromPath}${separator}`;
-
-  if (!targetPath.startsWith(fromWithBoundary)) return targetPath;
-  return `${toPath}${targetPath.slice(fromPath.length)}`;
-}
 
 export function usePrompts(promptDir: string) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -149,8 +134,9 @@ export function usePrompts(promptDir: string) {
     // Derive new filename from current title
     const newFileName = titleToFileName(withTimestamp.title);
     const oldFilePath = updated.filePath;
-    const dir = oldFilePath.substring(0, oldFilePath.lastIndexOf("/"));
-    const oldFileName = oldFilePath.split("/").pop() || "";
+    const lastSlash = oldFilePath.lastIndexOf("/");
+    const dir = oldFilePath.substring(0, lastSlash);
+    const oldFileName = oldFilePath.substring(lastSlash + 1);
 
     let finalPrompt = withTimestamp;
 

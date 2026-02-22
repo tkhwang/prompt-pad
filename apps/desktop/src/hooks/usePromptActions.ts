@@ -154,34 +154,39 @@ export function usePromptActions({
     [],
   );
 
+  const copyToClipboard = useCallback(
+    async (text: string) => {
+      await writeText(text);
+      toast.success(t("editor.copied"));
+    },
+    [t],
+  );
+
   const handleCopy = useCallback(async () => {
     if (editingPrompt) {
       const text = resolvePromptBody(editingPrompt);
-      await writeText(text);
-      toast.success(t("editor.copied"));
+      await copyToClipboard(text);
     }
-  }, [editingPrompt, t, resolvePromptBody]);
+  }, [editingPrompt, copyToClipboard, resolvePromptBody]);
 
   const handleSendTo = useCallback(
     async (service: LlmService) => {
       if (!editingPrompt) return;
       const text = resolvePromptBody(editingPrompt);
-      await writeText(text);
-      toast.success(t("editor.copied"));
+      await copyToClipboard(text);
       const url = buildServiceUrl(service, text);
       await open(url);
     },
-    [editingPrompt, t, resolvePromptBody],
+    [editingPrompt, copyToClipboard, resolvePromptBody],
   );
 
   const handleBlockSendTo = useCallback(
     async (service: LlmService, content: string) => {
-      await writeText(content);
-      toast.success(t("editor.copied"));
+      await copyToClipboard(content);
       const url = buildServiceUrl(service, content);
       await open(url);
     },
-    [t],
+    [copyToClipboard],
   );
 
   const handleTitleEnter = useCallback(() => {

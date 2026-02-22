@@ -93,7 +93,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
 
   const handleUnlinkRepoFromTopic = useCallback(
     async (topicName: string) => {
-      await updateTopicMeta(topicName, {});
+      await updateTopicMeta(topicName, { repoPath: undefined });
     },
     [updateTopicMeta],
   );

@@ -92,6 +92,22 @@ export async function writeTopicMeta(
   }
 }
 
+export function replacePathPrefix(
+  targetPath: string,
+  fromPath: string,
+  toPath: string,
+): string {
+  if (targetPath === fromPath) return toPath;
+
+  const separator = fromPath.includes("\\") ? "\\" : "/";
+  const fromWithBoundary = fromPath.endsWith(separator)
+    ? fromPath
+    : `${fromPath}${separator}`;
+
+  if (!targetPath.startsWith(fromWithBoundary)) return targetPath;
+  return `${toPath}${targetPath.slice(fromPath.length)}`;
+}
+
 export async function findAvailablePath(
   directory: string,
   baseName: string,

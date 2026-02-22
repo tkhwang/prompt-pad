@@ -17,6 +17,8 @@ export function useTopicManager({
   const [topicPanelOpen, setTopicPanelOpen] = useState(false);
   const [createTopicDialogOpen, setCreateTopicDialogOpen] = useState(false);
   const [topicNameInput, setTopicNameInput] = useState("");
+  const topicNameInputRef = useRef(topicNameInput);
+  topicNameInputRef.current = topicNameInput;
 
   // Retain last non-null topic for TopicPanel close animation
   const lastTopicRef = useRef<string | null>(null);
@@ -45,14 +47,14 @@ export function useTopicManager({
   }, []);
 
   const handleCreateTopicSubmit = useCallback(async () => {
-    const name = topicNameInput.trim();
+    const name = topicNameInputRef.current.trim();
     if (name) {
       await createTopic(name);
       setTopicNameInput("");
       setCreateTopicDialogOpen(false);
       await onAfterCreateTopic?.(name);
     }
-  }, [topicNameInput, createTopic, onAfterCreateTopic]);
+  }, [createTopic, onAfterCreateTopic]);
 
   const handleRenameTopic = useCallback(
     async (oldName: string, newName: string) => {
