@@ -148,7 +148,10 @@ fn collect_repo_files(
         let path = entry.path();
         let metadata = match fs::symlink_metadata(&path) {
             Ok(m) => m,
-            Err(_) => continue,
+            Err(e) => {
+                eprintln!("Could not read metadata for {:?}, skipping: {}", path, e);
+                continue;
+            }
         };
         if metadata.file_type().is_symlink() {
             continue;
