@@ -131,6 +131,10 @@ export const en = {
     delete_block: "Delete block",
     link_repo: "Link repository...",
     repo_path: "Repository",
+    unlink_repo: "Unlink repository",
+    change_repo: "Change repository",
+    no_files_found: "No files found",
+    repo_browse_title: "Select Repository Directory",
   },
 
   sidebar: {

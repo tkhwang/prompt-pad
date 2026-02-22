@@ -135,6 +135,10 @@ export const ko: DeepStringify<typeof en> = {
     delete_block: "블록 삭제",
     link_repo: "저장소 연결...",
     repo_path: "저장소",
+    unlink_repo: "저장소 연결 해제",
+    change_repo: "저장소 변경",
+    no_files_found: "파일을 찾을 수 없습니다",
+    repo_browse_title: "저장소 폴더 선택",
   },
 
   sidebar: {

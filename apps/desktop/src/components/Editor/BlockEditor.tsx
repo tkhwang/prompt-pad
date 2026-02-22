@@ -19,6 +19,7 @@ interface BlockEditorProps {
   onUpdate: (updated: Prompt) => void;
   activeBlockRef: RefObject<HTMLTextAreaElement | null>;
   handleRef: RefObject<BlockEditorHandle | null>;
+  repoFiles?: string[];
 }
 
 export function BlockEditor({
@@ -26,6 +27,7 @@ export function BlockEditor({
   onUpdate,
   activeBlockRef,
   handleRef,
+  repoFiles,
 }: BlockEditorProps) {
   const blocks = splitBlocks(prompt.body);
   const [activeBlockIndex, setActiveBlockIndex] = useState(0);
@@ -138,6 +140,7 @@ export function BlockEditor({
             }
             onSplit={(before, after) => handleBlockSplit(index, before, after)}
             isActive={index === activeBlockIndex}
+            repoFiles={repoFiles}
           />
         </div>
       ))}

@@ -1,4 +1,12 @@
-import { Eye, MessageSquareText, Pencil, Text, X } from "lucide-react";
+import { open } from "@tauri-apps/plugin-dialog";
+import {
+  Eye,
+  FolderGit2,
+  MessageSquareText,
+  Pencil,
+  Text,
+  X,
+} from "lucide-react";
 import {
   type RefObject,
   useCallback,
@@ -12,8 +20,15 @@ import { Editor } from "@/components/Editor/Editor";
 import { TemplatePanel } from "@/components/Editor/TemplatePanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useRepoFiles } from "@/hooks/useRepoFiles";
 import { useTranslation } from "@/i18n/I18nProvider";
 import { splitBlocks } from "@/lib/blocks";
 import type { LlmService } from "@/lib/llm-services";
@@ -51,6 +66,7 @@ export function EditorPanel({
   const body = prompt?.body ?? "";
   const variables = useMemo(() => extractVariables(body), [body]);
   const prevVariablesRef = useRef<string[]>(variables);
+  const { files: repoFiles } = useRepoFiles(prompt?.repoPath);
 
   // Sync prompt.templateValues when variables change
   useEffect(() => {
@@ -113,6 +129,24 @@ export function EditorPanel({
     [prompt, onUpdate],
   );
 
+  const handleLinkRepo = useCallback(async () => {
+    if (!prompt) return;
+    const selected = await open({
+      title: t("editor.repo_browse_title"),
+      directory: true,
+      recursive: true,
+      defaultPath: prompt.repoPath,
+    });
+    if (selected) {
+      onUpdate({ ...prompt, repoPath: selected });
+    }
+  }, [prompt, onUpdate, t]);
+
+  const handleUnlinkRepo = useCallback(() => {
+    if (!prompt) return;
+    onUpdate({ ...prompt, repoPath: undefined });
+  }, [prompt, onUpdate]);
+
   if (!prompt) {
     return (
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -151,6 +185,39 @@ export function EditorPanel({
             <h2 className="text-lg font-semibold truncate">{prompt.title}</h2>
           )}
         </div>
+        {/* Repo link button */}
+        {prompt.repoPath ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                title={
+                  prompt.repoPath.split("/").pop() ?? t("editor.repo_path")
+                }
+              >
+                <FolderGit2 className="h-4 w-4 text-primary" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleLinkRepo}>
+                {t("editor.change_repo")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleUnlinkRepo}>
+                {t("editor.unlink_repo")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLinkRepo}
+            title={t("editor.link_repo")}
+          >
+            <FolderGit2 className="h-4 w-4 text-muted-foreground" />
+          </Button>
+        )}
         <Button variant="ghost" size="icon" onClick={toggleMode}>
           {editorMode === "view" ? (
             <Eye className="h-4 w-4" />
@@ -209,7 +276,12 @@ export function EditorPanel({
           className={`flex flex-1 flex-col min-w-0 ${editorMode === "view" && viewStyle === "markdown" ? "bg-muted/50" : ""}`}
         >
           {editorMode === "edit" ? (
-            <Editor prompt={prompt} onUpdate={onUpdate} bodyRef={bodyRef} />
+            <Editor
+              prompt={prompt}
+              onUpdate={onUpdate}
+              bodyRef={bodyRef}
+              repoFiles={repoFiles}
+            />
           ) : (
             <>
               {/* View style toggle — matches MarkdownToolbar height */}

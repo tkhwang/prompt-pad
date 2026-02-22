@@ -11,9 +11,10 @@ interface EditorProps {
   prompt: Prompt;
   onUpdate: (updated: Prompt) => void;
   bodyRef?: RefObject<HTMLTextAreaElement | null>;
+  repoFiles?: string[];
 }
 
-export function Editor({ prompt, onUpdate, bodyRef }: EditorProps) {
+export function Editor({ prompt, onUpdate, bodyRef, repoFiles }: EditorProps) {
   const fallbackRef = useRef<HTMLTextAreaElement | null>(null);
   // Use bodyRef (from usePromptActions) as the activeBlockRef so that
   // external focus management (title Enter → body focus) works seamlessly.
@@ -35,6 +36,7 @@ export function Editor({ prompt, onUpdate, bodyRef }: EditorProps) {
         onUpdate={onUpdate}
         activeBlockRef={activeBlockRef}
         handleRef={blockEditorHandleRef}
+        repoFiles={repoFiles}
       />
     </>
   );

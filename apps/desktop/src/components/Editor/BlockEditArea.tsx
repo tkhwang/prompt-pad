@@ -6,7 +6,9 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
 } from "react";
+import { FileMentionPopup } from "@/components/Editor/FileMentionPopup";
 import { useTranslation } from "@/i18n/I18nProvider";
 
 interface BlockEditAreaProps {
@@ -16,17 +18,22 @@ interface BlockEditAreaProps {
   onDelete?: () => void;
   onSplit?: (before: string, after: string) => void;
   isActive: boolean;
+  repoFiles?: string[];
 }
 
 export const BlockEditArea = forwardRef<
   HTMLTextAreaElement,
   BlockEditAreaProps
 >(function BlockEditArea(
-  { value, onChange, onFocus, onDelete, onSplit, isActive },
+  { value, onChange, onFocus, onDelete, onSplit, isActive, repoFiles },
   ref,
 ) {
   const { t } = useTranslation();
   const internalRef = useRef<HTMLTextAreaElement | null>(null);
+  const [mention, setMention] = useState<{
+    startIndex: number;
+    query: string;
+  } | null>(null);
 
   const setRef = useCallback(
     (el: HTMLTextAreaElement | null) => {
@@ -53,13 +60,77 @@ export const BlockEditArea = forwardRef<
 
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLTextAreaElement>) => {
-      onChange(e.target.value);
+      const newValue = e.target.value;
+      onChange(newValue);
+
+      if (!repoFiles || repoFiles.length === 0) {
+        setMention(null);
+        return;
+      }
+
+      const el = e.target;
+      const cursor = el.selectionStart;
+      const textBeforeCursor = newValue.slice(0, cursor);
+      const atIndex = textBeforeCursor.lastIndexOf("@");
+
+      if (atIndex === -1) {
+        setMention(null);
+        return;
+      }
+
+      // Only trigger if @ is at start of line or preceded by whitespace
+      if (atIndex > 0 && !/\s/.test(newValue[atIndex - 1])) {
+        setMention(null);
+        return;
+      }
+
+      const query = textBeforeCursor.slice(atIndex + 1);
+      // Close popup if query is too long with spaces
+      if (/\s/.test(query) && query.length > 20) {
+        setMention(null);
+        return;
+      }
+
+      setMention({ startIndex: atIndex, query });
     },
-    [onChange],
+    [onChange, repoFiles],
+  );
+
+  const handleMentionSelect = useCallback(
+    (filePath: string) => {
+      if (!mention) return;
+      const el = internalRef.current;
+      if (!el) return;
+
+      const before = value.slice(0, mention.startIndex);
+      const after = value.slice(mention.startIndex + 1 + mention.query.length);
+      const newValue = `${before}${filePath}${after}`;
+      onChange(newValue);
+      setMention(null);
+
+      const newCursorPos = mention.startIndex + filePath.length;
+      requestAnimationFrame(() => {
+        el.focus();
+        el.setSelectionRange(newCursorPos, newCursorPos);
+      });
+    },
+    [mention, value, onChange],
   );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      // Let FileMentionPopup handle keys when open
+      if (
+        mention &&
+        (e.key === "ArrowUp" ||
+          e.key === "ArrowDown" ||
+          e.key === "Enter" ||
+          e.key === "Tab" ||
+          e.key === "Escape")
+      ) {
+        return;
+      }
+
       if (e.key !== "Enter" || !onSplit) return;
       const el = internalRef.current;
       if (!el) return;
@@ -77,7 +148,7 @@ export const BlockEditArea = forwardRef<
         onSplit(before, after);
       }
     },
-    [onSplit],
+    [onSplit, mention],
   );
 
   return (
@@ -97,6 +168,14 @@ export const BlockEditArea = forwardRef<
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
+      )}
+      {mention && repoFiles && repoFiles.length > 0 && (
+        <FileMentionPopup
+          files={repoFiles}
+          query={mention.query}
+          onSelect={handleMentionSelect}
+          onClose={() => setMention(null)}
+        />
       )}
       <textarea
         ref={setRef}
