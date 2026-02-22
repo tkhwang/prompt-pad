@@ -8,6 +8,7 @@
     "dev:desktop": "turbo run dev --filter=@prompt-pad/desktop",
     "dev:backend": "turbo run dev --filter=@prompt-pad/backend",
     "tauri:dev": "pnpm --filter @prompt-pad/desktop tauri dev",
+    "tauri:dev:mas": "pnpm --filter @prompt-pad/desktop tauri dev --features app-store --config src-tauri/tauri.appstore.conf.json",
     "tauri:build": "pnpm --filter @prompt-pad/desktop tauri build",
     "build:desktop": "turbo run build --filter=@prompt-pad/desktop",
     "build:backend": "turbo run build --filter=@prompt-pad/backend",
