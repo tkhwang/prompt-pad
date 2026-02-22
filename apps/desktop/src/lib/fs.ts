@@ -66,7 +66,7 @@ export interface TopicMeta {
   repoPath?: string;
 }
 
-const TOPIC_META_FILE = ".topic.json";
+const TOPIC_META_FILE = "_topic.json";
 
 export async function readTopicMeta(topicDir: string): Promise<TopicMeta> {
   try {

@@ -71,17 +71,21 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
 
   const handleLinkRepoToTopic = useCallback(
     async (topicName: string) => {
-      const confirmed = await ask(t("topic_panel.link_repo_confirm"), {
-        title: t("topic_panel.link_repo"),
-      });
-      if (!confirmed) return;
-      const selected = await open({
-        title: t("editor.repo_browse_title"),
-        directory: true,
-        recursive: true,
-      });
-      if (selected) {
-        await updateTopicMeta(topicName, { repoPath: selected });
+      try {
+        const confirmed = await ask(t("topic_panel.link_repo_confirm"), {
+          title: t("topic_panel.link_repo"),
+        });
+        if (!confirmed) return;
+        const selected = await open({
+          title: t("editor.repo_browse_title"),
+          directory: true,
+          recursive: true,
+        });
+        if (selected) {
+          await updateTopicMeta(topicName, { repoPath: selected });
+        }
+      } catch {
+        // silently ignore — dialog cancelled or FS error
       }
     },
     [t, updateTopicMeta],

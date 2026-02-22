@@ -1,10 +1,10 @@
 import { useCallback, useRef, useState } from "react";
 
 interface UseTopicManagerDeps {
-  createTopic: (name: string) => void;
+  createTopic: (name: string) => Promise<void>;
   renameTopic: (oldName: string, newName: string) => Promise<string>;
   deleteTopic: (name: string) => Promise<void>;
-  onAfterCreateTopic?: (name: string) => void;
+  onAfterCreateTopic?: (name: string) => Promise<void>;
 }
 
 export function useTopicManager({
@@ -44,13 +44,13 @@ export function useTopicManager({
     setCreateTopicDialogOpen(true);
   }, []);
 
-  const handleCreateTopicSubmit = useCallback(() => {
+  const handleCreateTopicSubmit = useCallback(async () => {
     const name = topicNameInput.trim();
     if (name) {
-      createTopic(name);
+      await createTopic(name);
       setTopicNameInput("");
       setCreateTopicDialogOpen(false);
-      onAfterCreateTopic?.(name);
+      await onAfterCreateTopic?.(name);
     }
   }, [topicNameInput, createTopic, onAfterCreateTopic]);
 

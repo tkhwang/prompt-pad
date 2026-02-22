@@ -43,10 +43,10 @@ interface TopicPanelProps {
   totalPromptCount: number;
   selectedTopic: string | null;
   onSelectTopic: (topic: string | null) => void;
-  onCreateTopic: (name: string) => void;
+  onCreateTopic: (name: string) => Promise<void>;
   onRenameTopic: (oldName: string, newName: string) => void;
   onDeleteTopic: (name: string) => void;
-  onLinkRepo: (topicName: string) => void;
+  onLinkRepo: (topicName: string) => Promise<void>;
   onUnlinkRepo: (topicName: string) => void;
 }
 
@@ -69,13 +69,13 @@ export function TopicPanel({
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleCreateSubmit = useCallback(() => {
+  const handleCreateSubmit = useCallback(async () => {
     const name = inputValue.trim();
     if (name) {
-      onCreateTopic(name);
+      await onCreateTopic(name);
       setInputValue("");
       setShowCreateDialog(false);
-      onLinkRepo(name);
+      await onLinkRepo(name);
     }
   }, [inputValue, onCreateTopic, onLinkRepo]);
 

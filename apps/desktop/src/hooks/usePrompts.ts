@@ -259,11 +259,24 @@ export function usePrompts(promptDir: string) {
     async (topicName: string, meta: TopicMeta) => {
       const topicPath = await join(promptDir, topicName);
       await writeTopicMeta(topicPath, meta);
-      setTopics((prev) =>
-        prev.map((t) =>
-          t.name === topicName ? { ...t, repoPath: meta.repoPath } : t,
-        ),
-      );
+      setTopics((prev) => {
+        const found = prev.some((t) => t.name === topicName);
+        if (found) {
+          return prev.map((t) =>
+            t.name === topicName ? { ...t, repoPath: meta.repoPath } : t,
+          );
+        }
+        // Topic not yet in state (race condition fallback) — add it
+        return [
+          ...prev,
+          {
+            name: topicName,
+            path: topicPath,
+            promptCount: 0,
+            repoPath: meta.repoPath,
+          },
+        ];
+      });
     },
     [promptDir],
   );
