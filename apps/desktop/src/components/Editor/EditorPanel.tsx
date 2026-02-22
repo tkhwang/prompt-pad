@@ -47,6 +47,7 @@ interface EditorPanelProps {
   onSendTo: (service: LlmService, content: string) => void;
   templatePanelCollapsed: boolean;
   onTemplatePanelCollapsedChange: (collapsed: boolean) => void;
+  topicRepoPath?: string;
 }
 
 export function EditorPanel({
@@ -61,12 +62,15 @@ export function EditorPanel({
   onSendTo,
   templatePanelCollapsed,
   onTemplatePanelCollapsedChange,
+  topicRepoPath,
 }: EditorPanelProps) {
   const { t } = useTranslation();
   const body = prompt?.body ?? "";
   const variables = useMemo(() => extractVariables(body), [body]);
   const prevVariablesRef = useRef<string[]>(variables);
-  const { files: repoFiles } = useRepoFiles(prompt?.repoPath);
+  const effectiveRepoPath = prompt?.repoPath ?? topicRepoPath;
+  const hasPromptOverride = !!prompt?.repoPath;
+  const { files: repoFiles } = useRepoFiles(effectiveRepoPath);
 
   // Sync prompt.templateValues when variables change
   useEffect(() => {
@@ -186,26 +190,36 @@ export function EditorPanel({
           )}
         </div>
         {/* Repo link button */}
-        {prompt.repoPath ? (
+        {effectiveRepoPath ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
                 title={
-                  prompt.repoPath.split("/").pop() ?? t("editor.repo_path")
+                  effectiveRepoPath.split("/").pop() ?? t("editor.repo_path")
                 }
               >
-                <FolderGit2 className="h-4 w-4 text-primary" />
+                <FolderGit2
+                  className={`h-4 w-4 ${hasPromptOverride ? "text-primary" : "text-primary/50"}`}
+                />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleLinkRepo}>
-                {t("editor.change_repo")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleUnlinkRepo}>
-                {t("editor.unlink_repo")}
-              </DropdownMenuItem>
+              {hasPromptOverride ? (
+                <>
+                  <DropdownMenuItem onClick={handleLinkRepo}>
+                    {t("editor.change_repo")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleUnlinkRepo}>
+                    {t("editor.remove_repo_override")}
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <DropdownMenuItem onClick={handleLinkRepo}>
+                  {t("editor.override_repo")}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (

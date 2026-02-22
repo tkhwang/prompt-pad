@@ -1,3 +1,4 @@
+import { ask, open } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CreateTopicDialog } from "@/components/CreateTopicDialog";
 import { EditorPanel } from "@/components/Editor/EditorPanel";
@@ -58,6 +59,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     createTopic,
     renameTopic,
     deleteTopic,
+    updateTopicMeta,
   } = usePrompts(settings?.promptDir ?? "");
 
   const { query, setQuery, filtered } = useSearch(prompts);
@@ -65,6 +67,31 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"compact" | "cozy" | "detailed">(
     "cozy",
+  );
+
+  const handleLinkRepoToTopic = useCallback(
+    async (topicName: string) => {
+      const confirmed = await ask(t("topic_panel.link_repo_confirm"), {
+        title: t("topic_panel.link_repo"),
+      });
+      if (!confirmed) return;
+      const selected = await open({
+        title: t("editor.repo_browse_title"),
+        directory: true,
+        recursive: true,
+      });
+      if (selected) {
+        await updateTopicMeta(topicName, { repoPath: selected });
+      }
+    },
+    [t, updateTopicMeta],
+  );
+
+  const handleUnlinkRepoFromTopic = useCallback(
+    async (topicName: string) => {
+      await updateTopicMeta(topicName, {});
+    },
+    [updateTopicMeta],
   );
 
   const {
@@ -82,7 +109,12 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     handleCreateTopicSubmit,
     handleRenameTopic,
     handleDeleteTopic,
-  } = useTopicManager({ createTopic, renameTopic, deleteTopic });
+  } = useTopicManager({
+    createTopic,
+    renameTopic,
+    deleteTopic,
+    onAfterCreateTopic: handleLinkRepoToTopic,
+  });
 
   const enabledServices = useMemo(() => {
     if (!settings) return [];
@@ -151,6 +183,12 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
     [updateSettings, onLanguageOverride],
   );
 
+  const currentTopicRepoPath = useMemo(() => {
+    if (!editingPrompt) return undefined;
+    const topic = topics.find((t) => t.name === editingPrompt.topic);
+    return topic?.repoPath;
+  }, [editingPrompt, topics]);
+
   const handleRerunSetup = useCallback(() => {
     setSettingsOpen(false);
     updateSettings({ onboardingComplete: false });
@@ -202,6 +240,8 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
             onCreateTopic={createTopic}
             onRenameTopic={handleRenameTopic}
             onDeleteTopic={handleDeleteTopic}
+            onLinkRepo={handleLinkRepoToTopic}
+            onUnlinkRepo={handleUnlinkRepoFromTopic}
           />
         </div>
 
@@ -254,6 +294,7 @@ function AppContent({ onLanguageOverride }: AppContentProps) {
               onTemplatePanelCollapsedChange={(collapsed) =>
                 updateSettings({ templatePanelCollapsed: collapsed })
               }
+              topicRepoPath={currentTopicRepoPath}
             />
           </div>
         </div>

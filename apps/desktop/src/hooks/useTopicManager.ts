@@ -4,12 +4,14 @@ interface UseTopicManagerDeps {
   createTopic: (name: string) => void;
   renameTopic: (oldName: string, newName: string) => Promise<string>;
   deleteTopic: (name: string) => Promise<void>;
+  onAfterCreateTopic?: (name: string) => void;
 }
 
 export function useTopicManager({
   createTopic,
   renameTopic,
   deleteTopic,
+  onAfterCreateTopic,
 }: UseTopicManagerDeps) {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [topicPanelOpen, setTopicPanelOpen] = useState(false);
@@ -48,8 +50,9 @@ export function useTopicManager({
       createTopic(name);
       setTopicNameInput("");
       setCreateTopicDialogOpen(false);
+      onAfterCreateTopic?.(name);
     }
-  }, [topicNameInput, createTopic]);
+  }, [topicNameInput, createTopic, onAfterCreateTopic]);
 
   const handleRenameTopic = useCallback(
     async (oldName: string, newName: string) => {

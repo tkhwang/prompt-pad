@@ -1,5 +1,6 @@
 import { join } from "@tauri-apps/api/path";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { TopicMeta } from "@/lib/fs";
 import {
   deletePromptFile,
   ensureDir,
@@ -7,9 +8,11 @@ import {
   listMarkdownFiles,
   listTopicDirs,
   readPromptFile,
+  readTopicMeta,
   removeDir,
   renameEntry,
   writePromptFile,
+  writeTopicMeta,
 } from "@/lib/fs";
 import {
   parseMarkdown,
@@ -58,6 +61,7 @@ export function usePrompts(promptDir: string) {
       for (const topicName of topicNames) {
         const topicPath = await join(dir, topicName);
         const files = await listMarkdownFiles(topicPath);
+        const meta = await readTopicMeta(topicPath);
 
         for (const fileName of files) {
           const filePath = await join(topicPath, fileName);
@@ -70,6 +74,7 @@ export function usePrompts(promptDir: string) {
           name: topicName,
           path: topicPath,
           promptCount: files.length,
+          repoPath: meta.repoPath,
         });
       }
 
@@ -250,6 +255,19 @@ export function usePrompts(promptDir: string) {
     [promptDir],
   );
 
+  const updateTopicMeta = useCallback(
+    async (topicName: string, meta: TopicMeta) => {
+      const topicPath = await join(promptDir, topicName);
+      await writeTopicMeta(topicPath, meta);
+      setTopics((prev) =>
+        prev.map((t) =>
+          t.name === topicName ? { ...t, repoPath: meta.repoPath } : t,
+        ),
+      );
+    },
+    [promptDir],
+  );
+
   const deleteTopic = useCallback(
     async (name: string) => {
       const topicPath = await join(promptDir, name);
@@ -286,5 +304,6 @@ export function usePrompts(promptDir: string) {
     createTopic,
     renameTopic,
     deleteTopic,
+    updateTopicMeta,
   };
 }

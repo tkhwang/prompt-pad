@@ -15,4 +15,5 @@ export interface Topic {
   name: string;
   path: string;
   promptCount: number;
+  repoPath?: string;
 }

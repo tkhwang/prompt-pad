@@ -137,6 +137,8 @@ export const ko: DeepStringify<typeof en> = {
     repo_path: "저장소",
     unlink_repo: "저장소 연결 해제",
     change_repo: "저장소 변경",
+    override_repo: "저장소 오버라이드",
+    remove_repo_override: "오버라이드 제거",
     no_files_found: "파일을 찾을 수 없습니다",
     repo_browse_title: "저장소 폴더 선택",
   },
@@ -156,6 +158,10 @@ export const ko: DeepStringify<typeof en> = {
     delete_confirm: '"{{name}}"과(와) 모든 프롬프트를 삭제할까요?',
     delete_description: "이 작업은 되돌릴 수 없습니다.",
     cancel: "취소",
+    link_repo: "저장소 연결",
+    change_repo: "저장소 변경",
+    unlink_repo: "저장소 연결 해제",
+    link_repo_confirm: "저장소를 연결하시겠습니까?",
   },
 
   prompt: {

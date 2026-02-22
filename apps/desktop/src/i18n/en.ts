@@ -133,6 +133,8 @@ export const en = {
     repo_path: "Repository",
     unlink_repo: "Unlink repository",
     change_repo: "Change repository",
+    override_repo: "Override repository",
+    remove_repo_override: "Remove override",
     no_files_found: "No files found",
     repo_browse_title: "Select Repository Directory",
   },
@@ -152,6 +154,10 @@ export const en = {
     delete_confirm: 'Delete "{{name}}" and all its prompts?',
     delete_description: "This action cannot be undone.",
     cancel: "Cancel",
+    link_repo: "Link repository",
+    change_repo: "Change repository",
+    unlink_repo: "Unlink repository",
+    link_repo_confirm: "Would you like to link a repository?",
   },
 
   prompt: {
