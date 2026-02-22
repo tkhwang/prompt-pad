@@ -151,8 +151,11 @@ export const BlockEditArea = forwardRef<
     [onSplit, mention],
   );
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   return (
     <div
+      ref={containerRef}
       className={`group relative rounded-md transition-colors ${
         isActive
           ? "ring-1 ring-primary/30 bg-primary/[0.02]"
@@ -175,6 +178,7 @@ export const BlockEditArea = forwardRef<
           query={mention.query}
           onSelect={handleMentionSelect}
           onClose={() => setMention(null)}
+          anchorRef={containerRef}
         />
       )}
       <textarea
