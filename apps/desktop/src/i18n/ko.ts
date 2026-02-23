@@ -139,7 +139,7 @@ export const ko: DeepStringify<typeof en> = {
     change_repo: "저장소 변경",
     override_repo: "저장소 오버라이드",
     remove_repo_override: "오버라이드 제거",
-    no_files_found: "파일을 찾을 수 없습니다",
+    no_files_found: "결과를 찾을 수 없습니다",
     repo_browse_title: "저장소 폴더 선택",
   },
 
