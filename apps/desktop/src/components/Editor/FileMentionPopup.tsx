@@ -24,23 +24,31 @@ const MAX_VISIBLE = 8;
 
 /** Returns a match score (lower = better), or -1 if no match. */
 function fuzzyScore(file: string, query: string): number {
-  const basename = file.split("/").pop() ?? file;
-  const lowerBase = basename.toLowerCase();
+  const lowerFile = file.toLowerCase();
   const q = query.toLowerCase();
 
-  // Exact basename match
+  const basename = file.split("/").pop() ?? file;
+  const lowerBase = basename.toLowerCase();
+
+  // 1. Basename matches (higher priority)
   if (lowerBase === q) return 0;
-  // Basename starts with query
   if (lowerBase.startsWith(q)) return 1;
-  // Basename contains query as substring
   if (lowerBase.includes(q)) return 2;
 
-  // Fuzzy match on basename
   let qi = 0;
   for (let i = 0; i < lowerBase.length && qi < q.length; i++) {
     if (lowerBase[i] === q[qi]) qi++;
   }
   if (qi === q.length) return 3;
+
+  // 2. Full path matches (lower priority)
+  if (lowerFile.includes(q)) return 4;
+
+  qi = 0;
+  for (let i = 0; i < lowerFile.length && qi < q.length; i++) {
+    if (lowerFile[i] === q[qi]) qi++;
+  }
+  if (qi === q.length) return 5;
 
   return -1;
 }
