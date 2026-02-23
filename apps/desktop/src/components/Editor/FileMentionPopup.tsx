@@ -1,8 +1,9 @@
-import { File } from "lucide-react";
+import { File, Folder } from "lucide-react";
 import {
   type RefObject,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -17,27 +18,37 @@ interface FileMentionPopupProps {
   anchorRef: RefObject<HTMLElement | null>;
 }
 
+type SearchItem = { path: string; type: "file" | "folder" };
+
 const MAX_VISIBLE = 8;
 
 /** Returns a match score (lower = better), or -1 if no match. */
 function fuzzyScore(file: string, query: string): number {
-  const basename = file.split("/").pop() ?? file;
-  const lowerBase = basename.toLowerCase();
+  const lowerFile = file.toLowerCase();
   const q = query.toLowerCase();
 
-  // Exact basename match
+  const basename = file.split("/").pop() ?? file;
+  const lowerBase = basename.toLowerCase();
+
+  // 1. Basename matches (higher priority)
   if (lowerBase === q) return 0;
-  // Basename starts with query
   if (lowerBase.startsWith(q)) return 1;
-  // Basename contains query as substring
   if (lowerBase.includes(q)) return 2;
 
-  // Fuzzy match on basename
   let qi = 0;
   for (let i = 0; i < lowerBase.length && qi < q.length; i++) {
     if (lowerBase[i] === q[qi]) qi++;
   }
   if (qi === q.length) return 3;
+
+  // 2. Full path matches (lower priority)
+  if (lowerFile.includes(q)) return 4;
+
+  qi = 0;
+  for (let i = 0; i < lowerFile.length && qi < q.length; i++) {
+    if (lowerFile[i] === q[qi]) qi++;
+  }
+  if (qi === q.length) return 5;
 
   return -1;
 }
@@ -59,13 +70,38 @@ export function FileMentionPopup({
     flip: boolean;
   } | null>(null);
 
+  const folders = useMemo(() => {
+    const set = new Set<string>();
+    for (const file of files) {
+      const parts = file.split("/");
+      for (let i = 1; i < parts.length; i++) {
+        set.add(parts.slice(0, i).join("/"));
+      }
+    }
+    return Array.from(set).sort();
+  }, [files]);
+
+  const allItems: SearchItem[] = useMemo(
+    () => [
+      ...folders.map((f) => ({ path: f, type: "folder" as const })),
+      ...files.map((f) => ({ path: f, type: "file" as const })),
+    ],
+    [folders, files],
+  );
+
   const filtered = query
-    ? files
-        .map((f) => ({ file: f, score: fuzzyScore(f, query) }))
+    ? allItems
+        .map((item) => ({ item, score: fuzzyScore(item.path, query) }))
         .filter((r) => r.score >= 0)
-        .sort((a, b) => a.score - b.score)
-        .map((r) => r.file)
-    : files;
+        .sort(
+          (a, b) =>
+            a.score - b.score ||
+            (a.item.type === "file" ? 0 : 1) -
+              (b.item.type === "file" ? 0 : 1) ||
+            a.item.path.localeCompare(b.item.path),
+        )
+        .map((r) => r.item)
+    : allItems;
 
   // Reset selection when filtered results change
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset index when filter changes
@@ -119,7 +155,8 @@ export function FileMentionPopup({
       } else if (e.key === "Enter" || e.key === "Tab") {
         e.preventDefault();
         if (filtered[selectedIndex]) {
-          onSelect(filtered[selectedIndex]);
+          const item = filtered[selectedIndex];
+          onSelect(item.type === "folder" ? `${item.path}/` : item.path);
         }
       } else if (e.key === "Escape") {
         e.preventDefault();
@@ -167,9 +204,9 @@ export function FileMentionPopup({
         className="overflow-y-auto py-1"
         style={{ maxHeight: `${MAX_VISIBLE * 32}px` }}
       >
-        {filtered.map((file, index) => (
+        {filtered.map((item, index) => (
           <button
-            key={file}
+            key={`${item.type}-${item.path}`}
             type="button"
             className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors ${
               index === selectedIndex
@@ -179,15 +216,19 @@ export function FileMentionPopup({
             onMouseEnter={() => setSelectedIndex(index)}
             onMouseDown={(e) => {
               e.preventDefault();
-              onSelect(file);
+              onSelect(item.type === "folder" ? `${item.path}/` : item.path);
             }}
           >
-            <File className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            {item.type === "folder" ? (
+              <Folder className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+            ) : (
+              <File className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            )}
             <span
               className="block truncate text-left"
               style={{ direction: "rtl" }}
             >
-              {file}
+              {`\u200E${item.path}`}
             </span>
           </button>
         ))}

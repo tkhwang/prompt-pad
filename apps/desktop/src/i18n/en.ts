@@ -135,7 +135,7 @@ export const en = {
     change_repo: "Change repository",
     override_repo: "Override repository",
     remove_repo_override: "Remove override",
-    no_files_found: "No files found",
+    no_files_found: "No results found",
     repo_browse_title: "Select Repository Directory",
   },
 
