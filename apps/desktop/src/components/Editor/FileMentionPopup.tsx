@@ -228,7 +228,7 @@ export function FileMentionPopup({
               className="block truncate text-left"
               style={{ direction: "rtl" }}
             >
-              {item.path}
+              {`\u200E${item.path}`}
             </span>
           </button>
         ))}
