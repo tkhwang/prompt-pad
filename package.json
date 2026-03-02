@@ -14,7 +14,7 @@
     "build:backend": "turbo run build --filter=@prompt-pad/backend",
     "build:desktop:mas": "rustup target add x86_64-apple-darwin 2>/dev/null; pnpm --filter @prompt-pad/desktop tauri build --target universal-apple-darwin --features app-store --config src-tauri/tauri.appstore.conf.json",
     "clean": "rimraf .turbo apps/*/dist packages/*/dist apps/*/*.tsbuildinfo packages/*/*.tsbuildinfo apps/*/node_modules packages/*/node_modules node_modules",
-    "release": "bumpp --files package.json apps/*/package.json packages/*/package.json apps/desktop/src-tauri/Cargo.toml apps/desktop/src-tauri/tauri.conf.json -x \"cd apps/desktop/src-tauri && cargo generate-lockfile && git add Cargo.lock\""
+    "release": "bumpp --files package.json apps/*/package.json packages/*/package.json apps/desktop/src-tauri/Cargo.toml apps/desktop/src-tauri/tauri.conf.json -x \"cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml && git add apps/desktop/src-tauri/Cargo.lock\""
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.15",
